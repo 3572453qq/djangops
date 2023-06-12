@@ -1,0 +1,209 @@
+{% extends 'easyops/base.html' %}
+{% block title %}logfiledownload{% endblock %}
+{% block body_block %}
+<style>
+    html,body{height:100%}
+    </style>
+<input type="button" value="文件如下：" id="inp" />
+<div id="filemanager"></div>
+{{ logfilename }}
+
+<input id="quit" type="button" value="退出">
+<!-- <ul id="contextmenu">
+</ul> -->
+<ul id="contextmenu">
+    <li onclick="abc()">download(下载)</li>
+</ul>
+<script>
+    
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+    var flag=0
+    function start(){
+        var text = document.getElementById("inp");
+        if (!flag)
+        {
+            text.style.color = "red";
+            // text.style.background = "#0000ff";
+            flag = 1;
+        }
+        else{
+            text.style.color = "";
+            text.style.background = "";
+            flag = 0;
+        }        
+    }
+    function download_file(selectedFiles)
+            {
+                var fm1 = $("#filemanager").getKendoFileManager();
+                // alert(fm1.toolbar['options'])
+                // console.log(fm1.toolbar.options)
+                // target = fm1.toolbar.options
+                // toolbar1 = fm1.toolbar.data("kendoToolBar");
+
+                // fm1.toolbar.items.enable=false
+                logfileid= {{logfileid}}
+                
+                if(selectedFiles[0]['isDirectory']==true){
+                    console.log('directory no action'); 
+                    alert('不能下载目录')
+                    return 0
+                }
+                url = '/easyops/file_download'
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    beforeSend:function(XMLHttpRequest){
+                        console.log(this);
+                        $("#inp").val("正在获取数据，如果文件较大，可能需要等候较长时间，请不要多次提交......"); 
+                        document.body.style.cursor = "wait"; 
+                        t=setInterval("start()",500);                       
+                    },
+                    data: {
+                        'logfileid': logfileid,
+                        'name': selectedFiles[0]['name'],
+                        'fullpath':selectedFiles[0]['fullpath'],
+                    },
+                    // dataType: "json",
+                    success: function (response,status,request) {
+                        document.body.style.cursor = "wait";      
+                        //构造一个form，且带上相关参数，去获取文件（其实相当于提交了两次）
+                        var disp = request.getResponseHeader('Content-Disposition');
+                        if(disp && disp.search('attachment')!=-1) {
+                            var input1 = $('<input>');
+                            input1.attr('type', 'hidden');
+                            input1.attr('name', 'logfileid');
+                            input1.attr('value', logfileid);
+                            var input2 = $('<input>');
+                            input2.attr('type', 'hidden');
+                            input2.attr('name', 'name');
+                            input2.attr('value', selectedFiles[0]['name']);
+                            var input3 = $('<input>');
+                            input3.attr('type', 'hidden');
+                            input3.attr('name', 'fullpath');
+                            input3.attr('value', selectedFiles[0]['fullpath']);
+
+                            var form = $('<form action="'+url+'" method="POST"></form>');
+                            $('body').append(form);
+                            form.append(input1);
+                            form.append(input2);
+                            form.append(input3);
+                            form.submit();
+                            $("#inp").val("文件如下："); 
+                            flag=1
+                            clearInterval(t)
+                            start()
+                            document.body.style.cursor = "default";
+
+                        }
+                    }
+                });
+                
+                
+            }
+
+            
+    filemanager_list = {{ filemanager_list | safe }}
+    console.log(filemanager_list)
+
+    var fm=$("#filemanager").kendoFileManager({
+                initialView: "grid",
+                views: {
+                    grid:{
+                        columns: [
+                            {
+                                field: 'name',
+                                title: 'name',
+                                width: "30px"
+                            },
+                            {
+                                field: 'modified',
+                                title: 'modified date',
+                                width: "60px"
+                            },
+                            {
+                                field: 'size',
+                                title: 'file size',
+                                width: "20px"
+                            },
+                        ],
+                        resizable: true,
+                       
+                    }
+                },
+                // dataSource: myData,
+                dataSource: filemanager_list,
+                toolbar: {
+                    items: [
+                        { name: "sortField" },
+                        { name: "changeView" },
+                        { name: "spacer" },
+                        { type: "button", name:"tips",text:"请在下方列表选定文件，然后点击本按钮下载",command: "downfile"},
+                        { name: "details" },
+                        { name: "search" },
+                        // { type: "button", name: "custom", text: "下载", command: "downfile" }
+                    ]
+                },
+                draggable: true,
+                // contextMenu: {
+                //     items: [
+                //         { name: "delete"},
+                       
+                //     ]
+                // }
+            });
+
+            
+        var filemanagerNS = kendo.ui.filemanager;
+
+        filemanagerNS.commands.downfile = filemanagerNS.FileManagerCommand.extend({
+                exec: function(){
+                var that = this,
+                filemanager = that.filemanager,// get the kendo.ui.FileManager instance
+                options = that.options, // get the options passed through the tool
+                target = options.target // options.target is available only when command is executed from the context menu
+                selectedFiles = filemanager.getSelected(); // get the selected files
+
+                console.log(selectedFiles);
+                
+                // Proceed with the logic of the custom command.
+                
+                download_file(selectedFiles);
+
+                }
+            });
+        var contextMenu=$("#contextmenu").kendoContextMenu({
+               target: "#filemanager",                
+        })
+        function abc() { 
+            // alert(111);
+            // fm.executeCommand("CreateFolderCommand");
+            document.body.style.cursor = "wait";
+
+            var filemanager = $("#filemanager").getKendoFileManager();
+            var files = filemanager.getSelected()
+            /* The result can be observed in the DevTools(F12) console of the browser. */
+            console.log(files)
+            download_file(files);
+            document.body.style.cursor = "default";
+
+            
+                
+        }
+
+            // contextMenu.bind("select", alert(1) )
+            
+    
+
+
+
+</script>
+
+
+
+    
+{% endblock %}

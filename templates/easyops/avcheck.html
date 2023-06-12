@@ -1,0 +1,222 @@
+{% extends 'easyops/base.html' %}
+{% block title %}avcheck{% endblock %}
+{% block body_block %}
+<style>
+    .error_style {
+      font-weight: bold;
+      color: #f00;
+    }
+    .critical {
+      background-color: #fdd;
+    }
+    tr.border_bottom td {
+        border-bottom: 1px solid black;
+    }
+    
+    .k-grid-content td { max-height:50px; }
+
+
+</style>
+
+<form style="height:100%">
+    <div id = 'tips'>
+        即将执行的检查是: 【{{desc}}】, 请点击“执行”按钮进行检查
+    </div>
+    <div id="acresult">
+    </div>
+    <br>
+    <!-- </div> -->
+    <!-- <input id="chat-message-input" type="text" size="100"><br> -->
+    <input id="chat-message-submit" type="button" value="执行">
+    <input id="quit" type="button" value="退出">
+</form>
+{{ ac_id|json_script:"ac_id" }}
+{{ acname|json_script:"acname"}}
+{{ desc|json_script:"desc"}}
+{{ app_name|json_script:"app_name"}}
+<script>
+    // $myDiv.scrollTop($myDiv[0].scrollHeight);
+
+      
+    var dataSource1 = new kendo.data.DataSource({
+                transport: {
+                    read: function(operation) {
+                        var data = operation.data.data || [];
+                        operation.success(data);
+                    }
+                },
+                schema: {
+                    model: {
+                        id: "rowid",
+                        fields: {
+                            rowid: { type: "number" },
+                            checkname: { type: "string"},
+                            desc: { type: "string" },
+                            checkresult: { type: "string" },
+                            checkdetail: { type: "string" },
+                            imagefilename: { type: "string" },
+                        }
+                    }
+                }
+            });
+    
+    // Create the row template string that will render the content of the specific rows.
+    // var rowTemplateString = '<tr class="border_bottom #: checkresult=="error" ? "error" : "" #" data-uid="#: uid #">' +
+        var rowTemplateString = '<tr class="#: checkresult=="error" ? "error_style" : "" #" data-uid="#: uid #"> ' +
+          '<td>#: rowid #</td>' +
+          '<td>#: checkname #</td>' +
+          '<td>#: desc #</td>' +
+          '<td>#: checkresult #</td>' +
+          '<td>#: checkdetail #</td>' +
+          "<td><a href='/static/images/tmp/#: imagefilename #' target='_blank' ><img src='/static/images/tmp/ss#: imagefilename #'/></td>"+ 
+          '</tr>';
+
+    var ke=$("#acresult").kendoGrid({
+        dataSource: dataSource1,
+        sortable: true,
+        resizable: true,
+        toolbar: ["search"],
+        search: {
+            fields: ["checkname","desc",'checkresult','checkdetail']
+        },
+        columns: [
+            {
+                field: 'rowid',
+                title: '序号',
+                width: "20px"
+            },
+            {
+                field: 'checkname',
+                title: '检查名称',
+                width: "30px"
+            },
+            {
+                field: 'desc',
+                title: '检查描述',
+                width: "50px"
+            },
+            {
+                field: 'checkresult',
+                title: '检查结果',
+                width: "50px"
+            },
+            {
+                field: 'checkdetail',
+                title: '检查细节',
+                width: "100px"
+            },
+            {
+                field: 'imagefilename',
+                title: "检查截屏", 
+                width: "60px", 
+                height: "60px"
+            },
+        ],
+        rowTemplate: rowTemplateString, // Provide the row template string
+    });
+    
+
+
+    const acname = JSON.parse(document.getElementById('acname').textContent);
+    const desc = JSON.parse(document.getElementById('desc').textContent);
+    const app_name = JSON.parse(document.getElementById('app_name').textContent);
+    // alert(app_name+'的'+desc);
+
+    const ac_id = JSON.parse(document.getElementById('ac_id').textContent);
+
+    
+    const chatSocket = new WebSocket(
+        'wss://'
+        + window.location.host.split(':')[0]
+        + '/ws/avcheck/'
+        + ac_id
+        + '/'
+    );
+    var li_rowid=0
+
+    $("#quit").kendoButton({
+        click: function () {
+            // history.go(-1)
+            window.close();
+        }
+    })
+
+    $("#chat-message-submit").kendoButton({
+        click: function () {
+            chatSocket.send(JSON.stringify({
+                'message': ac_id
+            }));
+            this.enable(false)
+            $("#tips").empty();
+            $("#tips").html('正在执行，等待加载结果，请耐心等候。。。')
+            data2=[];
+            dataSource1.read({ data: data2 });
+            li_rowid=0
+            document.body.style.cursor = "wait";
+            //后面只是看看如何取到grid的属性，比如border color
+            var kgrid=document.getElementsByClassName("k-grid")
+            var arr = Array.from(kgrid)
+            arr.forEach(function(pp){console.log(pp.innerText)})
+
+            var box=document.getElementById("acresult")
+            console.log(box.style)
+            console.log(box)
+
+            var kgridcontent=document.getElementsByClassName("k-grid-content")
+            console.log(kgridcontent.style)
+            console.log(kgridcontent)
+            // arr.forEach(function(pp){console.log(pp.innerText)})
+        }
+    })
+
+    var submitbutton = $("#chat-message-submit").data("kendoButton");
+
+    
+    var data2=new Array();
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        
+        if (data.event == 'check_single') {
+            $("#tips").empty();
+            $("#tips").html('正在进行检查：'+data.message)
+        }
+
+        if(data.event == 'check_socket' | data.event=='check_url')
+        {
+            console.log(data.check_result)
+ 
+            li_rowid++;
+            data2=data2.concat([{rowid: li_rowid,checkname: data.check_name,
+                desc:data.desc,checkresult:data.check_result,
+                checkdetail:data.check_detail,imagefilename:data.imagefilename}]);
+            dataSource1.read({ data: data2 });
+        }
+        
+
+        if (data.event == 'check complete') {
+            submitbutton.enable(true);
+            $("#tips").empty();
+            $("#tips").html('本次检查操作已全部完成，如果看不懂屏幕输出，您可能需要联系sa/dba确认最后执行结果。')
+            document.body.style.cursor = "default";
+        }
+        chatSocket.send(JSON.stringify({
+            'message': 'ping'
+        }));
+
+    };
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly:' + e.code + ' ' + e.reason + ' ' + e.wasClean);
+    
+    };
+
+    function keepwsalive(){
+        chatSocket.send(JSON.stringify({
+            'message': 'ping'
+        }));
+    }
+    var sh;
+    sh = setInterval(keepwsalive,10000)
+
+</script>
+{% endblock %} 

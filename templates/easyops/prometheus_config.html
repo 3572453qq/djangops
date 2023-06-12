@@ -1,0 +1,340 @@
+{% extends 'easyops/base.html' %}
+{% block title %}prometheus config{% endblock %}
+{% block body_block %}
+<!-- <style type="text/css">
+    input[name="sqlstr"] {
+        height: 300px;
+        word-wrap: break-all;
+        word-break: normal;
+    }
+</style> -->
+<!-- {{ls_data|safe}} -->
+<div class='row' id="app">
+  <div class="col-2">
+    <ul class="nav nav-pills flex-column">
+        {% for atab in tabs %}
+        <li class="nav-item left-pane" data-id={{atab.tab_name}} id="tab{{atab.tab_name}}">
+            <a class='nav-link' href="#id{{atab.tab_name}}" data-toggle='pill'>{{atab.tab_name}}</a>
+        </li>
+        {% endfor %}
+
+    </ul>
+
+  </div>
+
+  <div class="col-10">
+    <div class="tab-content" id="datatab">
+      {% for atab in tabs %}    
+        <div class="tab-pane fade" id="id{{atab.tab_name}}">
+          <div id="result{{atab.tab_name}}"> </div>
+          </br>      
+        </div>    
+      {% endfor %}  
+    </div>
+    <button type='button' class='btn btn-primary' id="saveconfig">保存并重启监控</button>
+    </br>
+    <form method="post" style="width:500px">
+       <input name="files" id="fileUpload" type="file" />
+    </form>
+    </br>        
+    <input id="quit" type="button" value="退出">
+    
+  </div>
+</div>
+
+<script>
+    
+
+    
+    // alert(sqlstr)
+    var ls_remotefile = {{ ls_remotefile|safe }}
+    console.log(ls_remotefile)
+    if(ls_remotefile == 'nofile'){ alert('配置文件不存在，请联系系统管理员') }
+    else{
+    //   var ls_columns = {{ ls_columns| safe}};
+    //   var ls_data= {{ls_data|safe}}
+      var tab_count = {{tab_count|safe}}
+      var tabs={{tabs|safe}}
+      console.log(tabs)
+      console.log(tab_count)
+
+      function textAreaEditor(container, options) {
+          $('<textarea class="k-textbox" name="' + options.field + '" style="width:100%;height:300px;" />').appendTo(container);
+      }
+
+      var isDateField =[];
+      var ls_id = {{ls_id|safe}}
+  
+         
+
+      $("#saveconfig").kendoButton({
+        click: function () {
+            check_session_timeout()
+
+            for(var i=0;i<tabs.length;i++)
+            {
+               
+                ls_tab_name = tabs[i]['tab_name']
+                $("#result"+ls_tab_name).data('kendoGrid').saveRow();
+               
+            }
+                          
+            
+            
+       
+            
+            $.ajax({
+                // async: false,
+                type: 'POST',
+                url: '/easyops/updateprometheus',
+                data: {
+                    'prometheusid': ls_id,
+                    'tabs': JSON.stringify(tabs),                      
+                },
+                dataType: "json",
+                success: function (result) {
+                    // alert(result)
+                    if(result['isok']==0)
+                    {
+                        alert(result['errmsg'])
+                        $("#result").html('执行失败，错误原因是：'+result['errmsg'])
+                    }
+                    else
+                    { 
+
+                      window.location.href = window.location.href;
+                      alert('保存和重置成功');
+                    }
+                }
+            });
+
+        }
+
+      })
+      function getCurrentTabName(){
+        return_value='nothing'
+        $('.tab-pane').each( function() {
+            // alert($(this))
+            if($(this).hasClass('active'))
+            {  
+                return_value = $(this).attr('id')
+                console.log($(this).attr('id'))                
+            }
+            
+        } );
+
+        return return_value.substr(2)
+
+      }
+
+      $('#fileUpload').kendoUpload(
+            {
+                multiple: false,
+                async: {
+                    'saveUrl': '/easyops/filetoprometheus{{ ls_id|safe }}',
+                    'autoUpload': false
+                },
+                upload: function (e) {
+                    e.data = { 'tabname': getCurrentTabName() };
+                },
+                localization: {
+                    select: "上传文件保存到配置并重启监控",
+                    uploadSelectedFiles: "确定上传并重启"
+                },
+                validation: {
+                    allowedExtensions: ['CSV', 'XLS', 'XLSX'],
+                },
+                success: function (e) {
+                    // fm.refresh()
+                    console.log(e.response)
+                    console.log('succsess event.');
+                    // window.location.href = window.location.href;
+                    if(e.response['isok']==0)
+                        {
+                            alert('文件解析失败，错误原因是：'+e.response['errmsg'])
+                           
+                        }
+                    else
+                      {
+                      
+                      console.log('Complete Event.');
+                      // console.log(e.response['isok'])
+                      alert('上传成功！！！')
+                      window.location.href = window.location.href;
+                    }    
+                },
+                complete: function (e) {
+                  console.log('complete event.');
+                  console.log(e)
+                
+                                    
+                },
+            }
+      ); 
+      
+      for(var i=0;i<tabs.length;i++)
+      {
+        ls_columns=tabs[i]['columns']
+        ls_data = tabs[i]['ls_data']
+        ls_tab_name = tabs[i]['tab_name']
+        generateGrid(i)
+      }
+      
+      
+
+      function getIndexById(tab_id,id) {
+              var idx,
+                  l = tabs[tab_id]['ls_data'].length;
+
+              for (var j=0; j < l; j++) {
+                  if (tabs[tab_id]['ls_data'][j].id == id) {
+                      return j;
+                  }
+              }
+              return null;
+          }
+
+      function generateGrid(tab_id) {
+          console.log('befor model')
+          var model = generateModel();
+          console.log(model)
+          var columns = generateColumns();
+          console.log(columns)
+          columns.push({ command: ["edit", "destroy"], title: "&nbsp;", width: "200px" })
+          console.log(columns)
+          var myDate = new Date();
+          var ls_date = myDate.getMinutes().toString()+myDate.getSeconds().toString();
+          // alert(myDate.toString().replace(/\s/g,''))
+          // alert(ls_date)
+          $("#result"+ls_tab_name).empty();
+          var grid = $("#result"+ls_tab_name).kendoGrid({            
+            toolbar:["excel","create","search"],
+            excel: {
+                  fileName: 'result'+ls_tab_name+ls_date+".xlsx",
+                  proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                  filterable: true,
+                  allPages: true
+              },
+            dataSource: {
+              transport:{
+                read:  function(options){
+                  options.success(tabs[tab_id]['ls_data']);
+                },
+                create: function (e) {
+                          var lsdataNextID = tabs[tab_id]['ls_data'].length + 1;
+                          // Assign an ID to the new item.
+                          e.data.id = lsdataNextID++;
+                          // Save data item to the original datasource.
+                          tabs[tab_id]['ls_data'].push(e.data);
+                          // On success.
+                          e.success(e.data);
+                          // On failure.
+                          //e.error("XHR response", "status code", "error message");
+                      },
+                      update: function (e) {
+                          // Locate item in original datasource and update it.
+                          tabs[tab_id]['ls_data'][getIndexById(tab_id,e.data.id)] = e.data;
+                          // On success.
+                          e.success();
+                          // On failure.
+                          // e.error("XHR response", "status code", "error message");
+                      },
+                      destroy: function (e) {
+                          // Locate item in original datasource and remove it.
+                          tabs[tab_id]['ls_data'].splice(getIndexById(tab_id,e.data.id), 1);
+                          // On success.
+                          e.success();
+                          // On failure.
+                          // e.error("XHR response", "status code", "error message");
+                      }
+              },
+
+              schema: {
+                model: model
+              }
+            },
+            
+            columns: columns,
+            editable: "inline",
+            pageable: {pageSize: gridpagesize,responsive: false,},
+            sortable: true,
+            resizable: true,
+          });
+        }
+
+        function generateColumns(){
+          var columnNames = ls_columns;
+          return columnNames.map(function(name){
+            return { field: name, format: (isDateField[name] ? "{0:D}" : "") };
+          })
+        }
+
+        function generateModel() {
+          var sampleDataItem = ls_data[0];
+          console.log(ls_data)
+          console.log(ls_data[0])
+
+          var model = {};
+          var fields = {};
+          for (var property in sampleDataItem) {
+            console.log(property)
+            if(property.indexOf("id") != -1){
+              model["id"] = property;
+            }
+            var propType = typeof sampleDataItem[property];
+
+            if (propType === "number" ) {
+              fields[property] = {
+                type: "number",
+                validation: {
+                  required: true
+                }
+              };
+              if(model.id === property){
+                fields[property].editable = false;
+                fields[property].validation.required = false;
+              }
+            } else if (propType === "boolean") {
+              fields[property] = {
+                type: "boolean"
+              };
+            } else if (propType === "string") {
+              fields[property] = {
+                type: "string"
+              };
+            } else {
+              fields[property] = {
+                validation: {
+                  required: true
+                }
+              };
+            }
+          }
+
+          model.fields = fields;
+
+          return model;
+        }
+
+      $("#quit").kendoButton({
+              click: function () {
+                  // history.go(-1)
+                  window.close();
+                // quit_tab_id = getCurrentTabName()
+                // console.log(quit_tab_id)
+              }
+      })
+      
+      window.onload=function(){
+            var url = window.location.href;
+            var activeTab = tabs[0]['tab_name'];
+            console.log("Selecting", activeTab);
+            $("[href='#id"+activeTab+"']").tab('show');
+        }
+    }
+
+
+
+</script>
+
+{% endblock %}

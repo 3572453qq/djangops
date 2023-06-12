@@ -1,0 +1,639 @@
+{% extends 'easyops/base.html' %} 
+{% block title %}index{% endblock %} 
+{% block body_block %}
+ <p>Welcome to GenZon easyops platform!!!</p>
+<!-- 引入样式 -->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!-- 引入组件库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<div class='row' id="app">
+    <div class="col-2">
+        <!-- <ul class="nav nav-pills flex-column">
+            {% for aapp in allapps %}
+            <li class="nav-item left-pane" data-id={{aapp.value}}>
+                <a class='nav-link' href="#id{{aapp.value}}" data-toggle='pill'>{{aapp.text}}</a>
+            </li>
+            {% endfor %}
+
+        </ul> -->
+        <div id="tree" style="width:750px;"></div>
+
+    </div>
+    <div class="col-10">
+        <div class="tab-content">
+
+
+            {% for app in allapps %}
+            <div class="tab-pane fade" id="id{{app.value}}">
+                {% if app.value in allplaybookappids %}
+                <p> {{ app.text }}  ansible play books</p>
+                <div id="listview-{{app.value}}" class="listView"></div>
+                <div id="pager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in allsqlappids %}
+                <p><p>sql statements</p>
+                <div id="sqlview-{{app.value}}" class="listView"></div>
+                <div id="sqlpager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in alldbappids %}
+                <p>databases</p>
+                <div id="dbview-{{app.value}}" class="listView"></div>
+                <div id="dbpager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in allgrafanaappids %}
+                <p>grafana reports</p>
+                <div id="grafanaview-{{app.value}}" class="listView"></div>
+                <div id="grafanapager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in allwikiappids %}
+                <p>wiki docs</p>
+                <div id="wikiview-{{app.value}}" class="listView"></div>
+                <div id="wikipager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in allacappids %}
+                <p>availability checks</p>
+                <div id="acview-{{app.value}}" class="listView"></div>
+                <div id="acpager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in logfileids %}
+                <p>logfile download</p>
+                <div id="logfileview-{{app.value}}" class="listView"></div>
+                <div id="logfilepager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in uploaddirids %}
+                <p>file upload</p>
+                <div id="uploaddirview-{{app.value}}" class="listView"></div>
+                <div id="uploaddirpager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in prometheusconfigids %}
+                <p>prometheus config</p>
+                <div id="prometheusconfigview-{{app.value}}" class="listView"></div>
+                <div id="prometheusconfigpager-{{app.value}}"></div>  
+                {% endif %}  
+            </div>           
+
+            {% endfor %}
+           
+
+
+
+        </div>
+
+    </div>
+    <script type="text/x-kendo-template" id="template">
+        <div class="product">
+            <img src="/static/images/ansible.png" alt="ansible.png" />
+            <a href='/easyops/ws#:id#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="sqltemplate">
+        <div class="product">
+            <img src="/static/images/identify-SQL-icon.png" alt="identify-SQL-icon.png" />
+            <a href='/easyops/sqlstatement#:id#' target="_blank"><h3>#:sqldesc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="dbtemplate">
+        <div class="product">
+            <img src="/static/images/sql-icon-17.png" alt="sql-icon-17.png" />
+            <a href='/easyops/database#:id#' target="_blank"><h3>#:dbdesc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="grafanatemplate">
+        <div class="product">
+            <img src="/static/images/Grafana_logo.png" alt="Grafana_logo.png" />
+            <!-- <a href='/easyops/grafanareport#:id#'><h3>#:desc#</h3></a> -->
+            <a href='#:reportlink#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="wikitemplate">
+        <div class="product">
+            <img src="/static/images/green-document-png.png" alt="green-document-png.png" />
+            <a href='#:wikilink#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="actemplate">
+        <div class="product">
+            <img src="/static/images/avcheck.png" alt="green-document-png.png" />
+            <a href='/easyops/checkjob#:id#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="logfiletemplate">
+        <div class="product">
+            <img src="/static/images/logfile.png" alt="green-document-png.png" />
+            <a href='/easyops/getlogfile#:id#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="uploaddirtemplate">
+        <div class="product">
+            <img src="/static/images/uploaddir.png" alt="green-document-png.png" />
+            <a href='/easyops/getdir#:id#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="prometheusconfigtemplate">
+        <div class="product">
+            <img src="/static/images/prometheus.png" alt="green-document-png.png" />
+            <a href='/easyops/pmmonitoring#:id#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script>
+        var allplaybooks = {{ allplaybooks|safe}};
+        var allsqls = {{ allsqls|safe}};
+        var alldbs = {{ alldbs |safe}};
+        var allapps = {{ get_applist |safe}};
+        var allgrafanas = {{ allgrafanas |safe}};
+        var allwikis = {{ allwikis |safe}};
+        var allchecks = {{ allchecks |safe}};
+        var apptree = {{ apptree|safe }};
+        var allacappids = {{ allacappids|safe }};
+        var logfiles = {{ logfiles|safe }}
+        var logfileids = {{ logfileids|safe }}
+        var uploaddirs = {{ uploaddirs|safe }}
+        var uploaddirids = {{ uploaddirids|safe }}
+        var prometheusconfig = {{ prometheusconfig|safe }}
+        var prometheusconfigids = {{ prometheusconfigids|safe }}
+        // var flatData = [
+        //     { id: 1, parent: 0, text: "Item 1" },
+        //     { id: 2, parent: 0, text: "Item 2" },
+        //     { id: 3, parent: 0, text: "Item 3" },
+        //     { id: 4, parent: 0, text: "Item 4" },
+        //     { id: 5, parent: 1, text: "Item 1.1" },
+        //     { id: 6, parent: 1, text: "Item 1.2" },
+        //     { id: 7, parent: 1, text: "Item 1.3" },
+        //     { id: 8, parent: 3, text: "Item 3.1" },
+        //     { id: 9, parent: 3, text: "Item 3.2" },
+        //     { id: 10, parent: 5, text: "Item 1.1.1" },
+        //     { id: 11, parent: 5, text: "Item 1.1.2" },
+        //     { id: 12, parent: 5, text: "Item 1.1.3" }
+        // ];
+        
+        //重新计算每个listview里面应该放多少个图标
+        function resizelistview() {
+            var width = $(".tab-content").width();
+            var numberoficons = Math.round(width/110-2)*2
+            // alert(numberoficons)
+
+            for (var i = 0; i < allapps.length; i++) {
+                // console.log("listview-"+allapps[i].value.toString())
+                if(document.getElementById("listview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#listview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("sqlview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#sqlview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("dbview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#dbview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("grafanaview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#grafanaview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("wikiview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#wikiview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("acview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#acview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("logfileview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#logfileview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("uploaddirview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#uploaddirview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+                if(document.getElementById("prometheusconfigview-"+allapps[i].value.toString()))
+                { 
+                    listviewElement=$("#prometheusconfigview-"+allapps[i].value.toString())
+                    listviewElement.data("kendoListView").dataSource.pageSize(numberoficons);
+                    listviewElement.data("kendoListView").refresh();
+                }
+
+            }
+        }
+
+        $(window).resize(function() {
+            resizelistview();
+        });
+
+        //生成treeview的datasource
+        function processTable(data, idField, foreignKey, rootLevel) {
+            var hash = {};
+      
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
+                var id = item[idField];
+                var parentId = item[foreignKey];
+                
+                hash[id] = hash[id] || [];
+                hash[parentId] = hash[parentId] || [];
+                // hash[text] = hash[text] || [];
+                // alert(item['linksto'])
+                item.items = hash[id];
+                hash[parentId].push(item);
+
+            }
+            // alert(hash[0]['id'])
+            return hash[rootLevel];
+        }
+
+        $("#tree").kendoTreeView({
+            dataSource: processTable(apptree, "id", "parent", 1),
+            dataUrlField: "linksto",
+            select: function(e) {
+            /* The result can be observed in the DevTools(F12) console of the browser. */
+                // console.log("Selecting", e.node);
+                var item = this.dataItem(e.node);
+                // console.log("Selecting", item);
+                var linksto = item['linksto']
+                var url = window.location.href;
+                var activeTab = url.substring(url.indexOf("#") + 1);
+
+                $(".tab-pane").removeClass("active in");
+                // $("#" + activeTab).addClass("active in");
+                // $('a[href="#'+ activeTab +'"]').tab('show');
+                $(linksto).addClass("active in");
+                $('a[href="'+ linksto +'"]').tab('show');
+                    
+            
+            },
+            loadOnDemand: false
+        });
+        for (var i = 0; i < allapps.length; i++) {
+            var width = $(".tab-content").width();
+            var numberoficons = Math.round(width/110-2)*2
+
+            // alert("#listview-"+allapps[i].value.toString())
+            // alert(width)
+            // 首先展示ansible playbook的list
+                        
+
+            var appplaybooks = new Array();
+            for (var j = 0; j < allplaybooks.length; j++) {
+                if (allapps[i].value == allplaybooks[j].app_id) {
+                    appplaybooks.push(allplaybooks[j])
+                }
+            }
+            var dataSource = new kendo.data.DataSource({
+                data: appplaybooks,
+                pageSize: numberoficons
+            });
+
+            $("#listview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#template").html()),
+            });
+
+            // var width = document.getElementById("#listview-"+allapps[i].value.toString()).height();
+
+            
+            $("#pager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: dataSource,
+                responsive: false,
+            });
+
+            //然后展示sql的list
+            var sqls = new Array();
+            for (var j = 0; j < allsqls.length; j++) {
+                if (allapps[i].value == allsqls[j].app_id) {
+                    sqls.push(allsqls[j])
+                }
+            }
+            var sqldataSource = new kendo.data.DataSource({
+                data: sqls,
+                pageSize: numberoficons 
+            });
+
+            $("#sqlview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: sqldataSource,
+                template: kendo.template($("#sqltemplate").html())
+            });
+
+            $("#sqlpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: sqldataSource,
+                responsive: false,
+            });
+
+            //然后展示db的list
+            var dbs = new Array();
+            for (var j = 0; j < alldbs.length; j++) {
+                if (allapps[i].value == alldbs[j].app_id) {
+                    dbs.push(alldbs[j])
+                }
+            }
+            var dbdataSource = new kendo.data.DataSource({
+                data: dbs,
+                pageSize: numberoficons
+            });
+
+            $("#dbview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: dbdataSource,
+                template: kendo.template($("#dbtemplate").html())
+            });
+
+            $("#dbpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: dbdataSource,
+                responsive: false,
+            });
+
+
+            //然后展示grafana的list
+            var grafanas = new Array();
+            for (var j = 0; j < allgrafanas.length; j++) {
+                if (allapps[i].value == allgrafanas[j].app_id) {
+                    grafanas.push(allgrafanas[j])
+                }
+            }
+            var grafanadataSource = new kendo.data.DataSource({
+                data: grafanas,
+                pageSize: numberoficons
+            });
+
+            $("#grafanaview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: grafanadataSource,
+                template: kendo.template($("#grafanatemplate").html())
+            });
+
+            $("#grafanapager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: grafanadataSource,
+                responsive: false,
+            });
+
+
+            //然后展示wiki的list
+            var wikis = new Array();
+            for (var j = 0; j < allwikis.length; j++) {
+                if (allapps[i].value == allwikis[j].app_id) {
+                    wikis.push(allwikis[j])
+                }
+            }
+            var wikidataSource = new kendo.data.DataSource({
+                data: wikis,
+                pageSize: numberoficons
+            });
+
+            $("#wikiview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: wikidataSource,
+                template: kendo.template($("#wikitemplate").html())
+            });
+
+            $("#wikipager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: wikidataSource,
+                responsive: false,
+            });
+
+            //然后展示check的list
+            var acs = new Array();
+            for (var j = 0; j < allchecks.length; j++) {
+                if (allapps[i].value == allchecks[j].app_id) {
+                    acs.push(allchecks[j])
+                }
+            }
+            var acdataSource = new kendo.data.DataSource({
+                data: acs,
+                pageSize: numberoficons
+            });
+
+            $("#acview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: acdataSource,
+                template: kendo.template($("#actemplate").html())
+            });
+
+            $("#acpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: acdataSource,
+                responsive: false,
+            });
+
+            //然后展示logfile的list
+            var logfilelist = new Array();
+            for (var j = 0; j < logfiles.length; j++) {
+                if (allapps[i].value == logfiles[j].app_id) {
+                    logfilelist.push(logfiles[j])
+                }
+            }
+            var logfiledataSource = new kendo.data.DataSource({
+                data: logfilelist,
+                pageSize: numberoficons
+            });
+
+            $("#logfileview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: logfiledataSource,
+                template: kendo.template($("#logfiletemplate").html())
+            });
+
+            $("#logfilepager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: logfiledataSource,
+                responsive: false,
+            });
+
+            //然后展示uploaddir的list
+            var uploaddirlist = new Array();
+            for (var j = 0; j < uploaddirs.length; j++) {
+                if (allapps[i].value == uploaddirs[j].app_id) {
+                    uploaddirlist.push(uploaddirs[j])
+                }
+            }
+            var uploaddirdataSource = new kendo.data.DataSource({
+                data: uploaddirlist,
+                pageSize: numberoficons
+            });
+
+            $("#uploaddirview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: uploaddirdataSource,
+                template: kendo.template($("#uploaddirtemplate").html())
+            });
+
+            $("#uploaddirpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: uploaddirdataSource,
+                responsive: false,
+            });
+
+            //然后展示prometheus的list
+            var prometheuslist = new Array();
+            for (var j = 0; j < prometheusconfig.length; j++) {
+                if (allapps[i].value == prometheusconfig[j].app_id) {
+                    prometheuslist.push(prometheusconfig[j])
+                }
+            }
+            var prometheusdataSource = new kendo.data.DataSource({
+                data: prometheuslist,
+                pageSize: numberoficons
+            });
+
+            $("#prometheusconfigview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: prometheusdataSource,
+                template: kendo.template($("#prometheusconfigtemplate").html())
+            });
+
+            $("#prometheusconfigpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: prometheusdataSource,
+                responsive: false,
+            });
+        }
+
+        // alert(appplaybooks)
+        window.onload=function(){
+            var url = window.location.href;
+            var activeTab = url.substring(url.indexOf("#") + 1);
+            console.log("Selecting", activeTab);
+            $("[href='#"+activeTab+"']").click()
+            $(".tab-pane").removeClass("active in");
+            $("[href='#"+activeTab+"']").addClass("active in");
+            $("[href='#"+activeTab+"']").tab('show');
+        }
+    </script>
+
+    <style>
+		#tree{
+			color: #409EFF;
+			size: 100px;
+			
+		}
+	/* 	#app{
+			color: red;
+		} */
+		.k-in,k-link{
+			broder:0;
+			color:gray;
+			font-weight: bolder;
+		}
+		.k-in,k-link.active{
+			background-color:#f9f9f9;
+			  border-color:#f9f9f9;
+		}
+		.k-in,k-link,:hover{
+			color:  gray;
+		}
+		.k-top>a:hover{
+		color:  #F08080;
+		}
+		.k-mid>a:hover{
+			color: #F08080;
+		}
+		.k-bot>a:hover{
+			color: #F08080;
+		}
+        .listView {
+            padding: 10px 5px;
+            margin-bottom: -1px;
+            min-height: 110px;
+            /* Avoid cutout if font or line is bigger */
+            font: inherit;
+        }
+
+        .product {
+            float: left;
+            position: relative;
+            width: 110px;
+            height: 170px;
+            margin: 0 5px;
+            padding: 0;
+        }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+        .product h3 {
+			margin-bottom: 2px;
+			box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin: 0;
+            padding: 5px 5px 0 0;
+            max-width: 110px;
+            overflow: hidden;
+            line-height: 1.1em;
+            font-size: .9em;
+            font-weight: normal;
+            color: gray;
+            word-break:break-all;
+            text-align:center;
+        }
+         h3:hover{
+		   	color: red; 
+		 }
+        .product p {
+            visibility: hidden;
+        }
+
+        .k-listview:after {
+            content: ".";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+		.tab-content{
+			color: #409EFF;
+			padding-left: 30px;
+			
+		}
+		p{
+			text-align: center;
+			padding-left: 10px;
+			border-radius: 35px;
+			color: white;
+			background:#409EFF ;
+		}
+		.product>a{
+			text-decoration:none;
+		}
+		.nav-link{
+			border-bottom: 1px solid gray;
+			border-right: 1px solid gray;
+			text-align: center;
+		}
+    </style>
+
+
+</div>
+
+{% endblock %}

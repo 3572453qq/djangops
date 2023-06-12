@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyboard navigation</title>
+    <meta charset="utf-8">
+    <link href="../content/shared/styles/examples-offline.css" rel="stylesheet">
+    <link href="../../styles/kendo.common.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.mobile.min.css" rel="stylesheet">
+    <script src="../../js/jquery.min.js"></script>
+    <script src="../../js/jszip.min.js"></script>
+    <script src="../../js/kendo.all.min.js"></script>
+    <script src="../content/shared/js/console.js"></script>
+    <script>
+        
+    </script>
+    
+    
+</head>
+<body>
+    
+        <a class="offline-button" href="../index.html">Back</a>
+    
+    <div id="example">
+        <div class="demo-section k-content wide">
+            <nav id="stepper"></nav>
+        </div>
+
+        <div class="box">
+            <div class="box-col">
+                <h4>Keyboard legend</h4>
+                <ul class="keyboard-legend">
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button leftAlign wider">Alt</span>
+                            +
+                            <span class="key-button">w</span>
+                        </span>
+                        <span class="button-descr">
+                            focuses the widget
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button wider leftAlign">Shift</span>
+                            +
+                            <span class="key-button wider leftAlign">Tab</span>
+                            or
+                            <span class="key-button wider leftAlign">left arrow</span>
+                            or
+                            <span class="key-button wider leftAlign">up arrow</span>
+                        </span>
+                        <span class="button-descr">
+                            focuses previous step
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button wider leftAlign">Tab</span>
+                            or
+                            <span class="key-button wider leftAlign">right arrow</span>
+                            or
+                            <span class="key-button wider leftAlign">down arrow</span>
+                        </span>
+                        <span class="button-descr">
+                            focuses next step
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button">home</span>
+                        </span>
+                        <span class="button-descr">
+                            focuses first step
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button">end</span>
+                        </span>
+                        <span class="button-descr">
+                            focuses last step
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-preview">
+                            <span class="key-button wider leftAlign">Space</span>
+                            or
+                            <span class="key-button wider leftAlign">Enter</span>
+                        </span>
+                        <span class="button-descr">
+                            selects focused step
+                        </span>
+                    </li>
+                    <li>
+                        <span class="button-descr">
+                            To move the focus away from the Stepper:
+                        </span>
+                        <br />
+                        Focus the last step and press
+                        <span class="button-preview">
+                            <span class="key-button">Tab</span>
+                        </span>
+                        or
+                        <span class="button-preview">
+                            Focus the first step and press
+                            <span class="key-button leftAlign wider">Shift</span>
+                            +
+                            <span class="key-button">Tab</span>
+                        </span>
+
+                    </li>
+                </ul>
+                <br/>
+                <h4>Select on focus</h4>
+                <ul class="keyboard-legend">
+                    <li>
+                        <input type="checkbox" id="selectOnFocus" class="k-checkbox">
+                        <label class="k-checkbox-label" for="selectOnFocus">Enable Select on focus</label>
+                    </li>
+                    <li>
+                        <span class="button-descr">
+                            When Select on focus mode of the Stepper is enabled, the selection in the stepper will move together with the focus. Moving the focus to another step using the Tab or the arrow keys will also move the selection.
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        var original = $("#stepper").clone(true);
+
+        $("#selectOnFocus").change(function () {
+            var stepper = $("#stepper"),
+            clone = original.clone(true);
+
+            stepper.data("kendoStepper");
+
+            stepper.replaceWith(clone);
+
+            initStepper();
+        })
+
+        var initStepper = function () {
+            var selectOnFocus = $("#selectOnFocus").prop("checked");
+            $("#stepper").kendoStepper({
+                selectOnFocus:selectOnFocus,
+                linear:false,
+                steps: [{
+                    label: "Personal Info",
+                    icon:"user"
+                },{
+                    label: "Education",
+                    icon:"dictionary-add",
+                    error: true
+                },{
+                    label: "Experience",
+                    icon:"flip-vertical",
+                    selected: true
+                },{
+                    label: "Attachments",
+                    icon: "attachment"
+                },{
+                    label: "Preview",
+                    icon:"preview",
+                    enabled: false
+                },{
+                    label: "Submit",
+                    icon: "file-add"
+                }]
+            }).data("kendoStepper");
+        };
+
+        initStepper();
+
+    });
+
+    $(document.body).keydown(function (e) {
+        if (e.altKey && e.keyCode == 87) {
+            $("#stepper .k-step-current .k-step-link").focus();
+        }
+    });
+</script>
+
+
+    
+</body>
+</html>

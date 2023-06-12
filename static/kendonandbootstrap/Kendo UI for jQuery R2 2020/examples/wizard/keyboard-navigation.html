@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyboard navigation</title>
+    <meta charset="utf-8">
+    <link href="../content/shared/styles/examples-offline.css" rel="stylesheet">
+    <link href="../../styles/kendo.common.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.mobile.min.css" rel="stylesheet">
+    <script src="../../js/jquery.min.js"></script>
+    <script src="../../js/jszip.min.js"></script>
+    <script src="../../js/kendo.all.min.js"></script>
+    <script src="../content/shared/js/console.js"></script>
+    <script>
+        
+    </script>
+    
+    
+</head>
+<body>
+    
+        <a class="offline-button" href="../index.html">Back</a>
+    
+    <div id="example">
+    <div class="demo-section k-content wide" style="width: 600px;">
+        <form id="wizard" novalidate></form>
+    </div>
+
+    <div class="box">
+        <div class="box-col">
+            <h4>Keyboard legend</h4>
+            <ul class="keyboard-legend">
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button leftAlign wider">Alt</span>
+                        +
+                        <span class="key-button">w</span>
+                    </span>
+                    <span class="button-descr">
+                        focuses the currently selected step of the widget
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">left arrow</span>
+                        or
+                        <span class="key-button wider leftAlign">up arrow</span>
+                    </span>
+                    <span class="button-descr">
+                        selects previous step
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">right arrow</span>
+                        or
+                        <span class="key-button wider leftAlign">down arrow</span>
+                    </span>
+                    <span class="button-descr">
+                        selects next step
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button">home</span>
+                    </span>
+                    <span class="button-descr">
+                        selects first step
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button">end</span>
+                    </span>
+                    <span class="button-descr">
+                        selects last step
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button">Tab</span>
+                    </span>
+                    <span class="button-descr">
+                        focuses next element in the page Tab sequence
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button leftAlign wider">Shift</span>
+                        +
+                        <span class="key-button">Tab</span>
+                    </span>
+                    <span class="button-descr">
+                        focuses previous element in the page Tab sequence
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $("#wizard").kendoWizard({
+            contentPosition: "right",
+            validateForms: false,
+            done: function (e) {
+                e.originalEvent.preventDefault();
+                kendo.alert("Thank you for registering! Registration details will be sent to your email.");
+            },
+            stepper: {
+                linear: false
+            },
+            steps: [
+                    {
+                    title: "Welcome",
+                    buttons: ["next"],
+                    content: '<div style="text-align:center"><h3>Complete the Registration Form to enroll in the course</h3></div>'
+                },
+                {
+                    title: "User Details",
+                    buttons: ["previous", "next"],
+                    form: {
+                        formData: {
+                            FirstName: "",
+                            LastName: "",
+                            Email: ""
+                        },
+                        items: [
+                            { field: "Username", label: "Username:", validation: { required: true } },
+                            { field: "Email", label: "Email:", validation: { required: true, email: true } },
+                            { field: "Password", label: "Password:", validation: { required: true }, hint: "Hint: enter alphanumeric characters only.", attributes: { type: "password" } }
+                        ]
+                    }
+                }, {
+                    title: "Personal Details",
+                    buttons: ["previous", "next"],
+                    form: {
+                        formData: {
+                            FirstName: "",
+                            LastName: "",
+                            DateOfBirth: new Date()
+                        },
+                        items: [
+                                { field: "FirstName", label: "First Name:", validation: { required: true } },
+                                { field: "LastName", label: "Last Name:", validation: { required: true } },
+                                { field: "DateOfBirth", label: "Date of Birth:", validation: { required: true } }
+                            ]
+                    },
+                }, {
+                    title: "Finish",
+                    buttons: ["previous", "done"],
+                    content: '<div style="text-align:center"><h3>Registration Complete!</h3></div>'
+                },
+            ]
+        });
+
+        $(document.body).keydown(function (e) {
+            if (e.altKey && e.keyCode == 87) {
+                $("#wizard .k-step-current .k-step-link").focus();
+            }
+        });
+    </script>
+</div>
+
+
+    
+</body>
+</html>

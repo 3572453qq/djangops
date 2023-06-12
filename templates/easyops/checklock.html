@@ -1,0 +1,182 @@
+{% extends 'easyops/base.html' %}
+{% block title %}请在此页面解锁-revision 18{% endblock %}
+{% block body_block %}
+<style> 
+.div-left{width:2000px;height:800px;border:1px solid #000;float:left} 
+.gridTitle {
+      text-align: center;
+    }
+</style> 
+<h5>请选择需要解锁的数据库，并点击查询按钮</h5>
+<form id="select database" method="post" action="/easyops/oracleunlock">
+    {% csrf_token %}
+    <span class="border border-primary ">-- select database </span>
+    <select class="form-control" id="select" name="dbname">
+        {% for db in dbs %}
+        <option value="{{db.dbname}}" {% if db.dbname == selecteddb %} selected {% endif %}>{{db.dbname}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="查询" />
+</form>
+
+ <div class="col-md-12" >
+    <div id="sessionlist"></div>
+</div>
+<div class="col-md-3" id="right">
+    <dl>
+        <div id="killsession" style = "display:none">kill</div>
+        <div id="saveasexcel" style = "display:none">saveasexcel</div>
+    </dl>
+</div>
+<script type="text/javascript">
+ var myDate = new Date();
+$(function(){
+    var ispost = {{ ispost|safe}};
+    if(ispost=='0')
+    {
+        return 
+    }
+
+    var a_date = myDate.getMinutes().toString()+myDate.getSeconds().toString();
+    var a_data = {{ locked_session|safe }};
+    document.getElementById('killsession').style.display='block';
+    document.getElementById('saveasexcel').style.display='block';
+    // alert('{{selecteddb|safe}}')
+    
+    $('#sessionlist').kendoGrid({
+        toolbar: ["excel"],
+            excel: {
+                fileName: '{{selecteddb|safe}}'+"lockedsessions"+a_date+".xlsx",
+                proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                filterable: true,
+                allPages: false
+            },
+            {% comment %} height:630, //设置高度，超过显示滚动条 {% endcomment %}
+            width: 2048,
+            pageable: false,
+            resizable: true,
+            selectable: true,
+            columns: [
+                {
+                    field: 'SESS',
+                    title: 'SESS',
+                    width: 100
+                },
+                {
+                    field: 'ID1ID2',
+                    title: 'ID1ID2',
+                    width: 100
+                },
+                {
+                    field: 'LMODEREQUEST',
+                    title: 'LMODEREQUEST',
+                    width: 100
+                },
+                {
+                    field: 'CTIME',
+                    title: 'CTIME',
+                    width: 50
+                },
+                {
+                    field: 'SQL_ID',
+                    title: 'SQL_ID',
+                    width: 100
+                },
+                {
+                    field: 'EVENT',
+                    title: 'EVENT',
+                    width: 100
+                },
+                {
+                    field: 'LAST_CALL_ET',
+                    title: 'LAST_CALL_ET',
+                    width: 50
+                },
+                {
+                    field: 'STATUS',
+                    title: 'STATUS',
+                    width: 60
+                },
+                {
+                    field: 'USERNAME',
+                    title: 'USERNAME',
+                    width: 60
+                },
+                {
+                    field: 'MACHINE',
+                    title: 'MACHINE',
+                    width: 60
+                },
+                {
+                    field: 'PROGRAM',
+                    title: 'PROGRAM',
+                    width: 100
+                },
+                {
+                    field: 'SQLTEXT',
+                    title: 'SQLTEXT',
+                    width:500
+                }
+            ],
+        dataSource: {
+            data: a_data
+        },
+        sortable: {
+        	mode: "single"
+        },
+        
+    });
+    $(".k-grid-toolbar").prepend("<div class='gridTitle'><h1>{{selecteddb|safe}}</h1></div>");     
+});
+
+function sleep(numberMillis) {
+	var now = new Date();
+	var exitTime = now.getTime() + numberMillis;
+	while (true) {
+		now = new Date();
+		if (now.getTime() > exitTime)
+		return;
+	    }
+}
+
+
+$.ajaxSetup({
+            data:{csrfmiddlewaretoken:'{{ csrf_token }}'}
+        })
+
+$("#killsession").kendoButton({
+    click: function(){
+    $.ajax({
+        type: 'POST',
+        url: '/easyops/killblocker/',
+        data: {
+          'dbname': '{{selecteddb|safe}}'
+        },
+        dataType: 'text',
+        success: function (data) {
+              alert(data);
+              sleep(1000);
+              window.location.reload() ; //刷新页面
+            //   alert('{{selecteddb|safe}}');
+              if(data==0){
+              alert('nothing to kill');
+              layer.msg('hello');}
+              else
+              alert('killed, pls check');
+        }        
+      });
+    
+    }
+    
+})
+
+$("#saveasexcel").kendoButton({
+    click: function()
+    {
+      $("#sessionlist").data("kendoGrid").saveAsExcel()
+    }
+  })
+
+</script>
+
+{% endblock %}

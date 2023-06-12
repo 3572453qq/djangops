@@ -1,0 +1,279 @@
+{% extends 'easyops/base.html' %} 
+{% block title %}index{% endblock %} 
+{% block body_block %}
+Welcome to GenZon easyops platform!!!
+<div class='row' id="app">
+    <div class="col-2">
+        <ul class="nav nav-pills flex-column">
+            {% for aapp in allapps %}
+            <li class="nav-item left-pane" data-id={{aapp.value}}>
+                <a class='nav-link' href="#id{{aapp.value}}" data-toggle='pill'>{{aapp.text}}</a>
+            </li>
+            {% endfor %}
+
+        </ul>
+
+    </div>
+    <div class="col-10">
+        <div class="tab-content">
+
+
+            {% for app in allapps %}
+            <div class="tab-pane fade" id="id{{app.value}}">
+               
+                {% if app.value in allplaybookappids %}
+                <p>ansible play books:</p>
+                <div id="listview-{{app.value}}" class="listView"></div>
+                <div id="pager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in allsqlappids %}
+                <p>sql statements:</p>
+                <div id="sqlview-{{app.value}}" class="listView"></div>
+                <div id="sqlpager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in alldbappids %}
+                <p>databases:</p>
+                <div id="dbview-{{app.value}}" class="listView"></div>
+                <div id="dbpager-{{app.value}}"></div>
+                {% endif %}
+
+                {% if app.value in allgrafanaappids %}
+                <p>grafana reports:</p>
+                <div id="grafanaview-{{app.value}}" class="listView"></div>
+                <div id="grafanapager-{{app.value}}"></div>  
+                {% endif %}  
+
+                {% if app.value in allwikiappids %}
+                <p>wiki docs:</p>
+                <div id="wikiview-{{app.value}}" class="listView"></div>
+                <div id="wikipager-{{app.value}}"></div>  
+                {% endif %}  
+            </div>           
+
+            {% endfor %}
+           
+
+
+
+        </div>
+
+    </div>
+    <script type="text/x-kendo-template" id="template">
+        <div class="product">
+            <img src="/static/images/ansible.png" alt="ansible.png" />
+            <a href='/easyops/ws#:id#'><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="sqltemplate">
+        <div class="product">
+            <img src="/static/images/identify-SQL-icon.png" alt="identify-SQL-icon.png" />
+            <a href='/easyops/sqlstatement#:id#'><h3>#:sqldesc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="dbtemplate">
+        <div class="product">
+            <img src="/static/images/sql-icon-17.png" alt="sql-icon-17.png" />
+            <a href='/easyops/database#:id#'><h3>#:dbdesc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="grafanatemplate">
+        <div class="product">
+            <img src="/static/images/Grafana_logo.png" alt="Grafana_logo.png" />
+            <!-- <a href='/easyops/grafanareport#:id#'><h3>#:desc#</h3></a> -->
+            <a href='#:reportlink#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script type="text/x-kendo-template" id="wikitemplate">
+        <div class="product">
+            <img src="/static/images/green-document-png.png" alt="green-document-png.png" />
+            <a href='#:wikilink#' target="_blank"><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script>
+        var allplaybooks = {{ allplaybooks|safe}};
+        var allsqls = {{ allsqls|safe}};
+        var alldbs = {{ alldbs |safe}};
+        var allapps = {{ get_applist |safe}};
+        var allgrafanas = {{ allgrafanas |safe}};
+        var allwikis = {{ allwikis |safe}};
+
+        for (var i = 0; i < allapps.length; i++) {
+            // 首先展示ansible playbook的list
+            var appplaybooks = new Array();
+            for (var j = 0; j < allplaybooks.length; j++) {
+                if (allapps[i].value == allplaybooks[j].app_id) {
+                    appplaybooks.push(allplaybooks[j])
+                }
+            }
+            var dataSource = new kendo.data.DataSource({
+                data: appplaybooks,
+                pageSize: 10
+            });
+
+            $("#listview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#template").html()),
+            });
+
+            $("#pager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: dataSource,
+                responsive: false,
+            });
+
+            //然后展示sql的list
+            var sqls = new Array();
+            for (var j = 0; j < allsqls.length; j++) {
+                if (allapps[i].value == allsqls[j].app_id) {
+                    sqls.push(allsqls[j])
+                }
+            }
+            var sqldataSource = new kendo.data.DataSource({
+                data: sqls,
+                pageSize: 10
+            });
+
+            $("#sqlview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: sqldataSource,
+                template: kendo.template($("#sqltemplate").html())
+            });
+
+            $("#sqlpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: sqldataSource,
+                responsive: false,
+            });
+
+            //然后展示db的list
+            var dbs = new Array();
+            for (var j = 0; j < alldbs.length; j++) {
+                if (allapps[i].value == alldbs[j].app_id) {
+                    dbs.push(alldbs[j])
+                }
+            }
+            var dbdataSource = new kendo.data.DataSource({
+                data: dbs,
+                pageSize: 10
+            });
+
+            $("#dbview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: dbdataSource,
+                template: kendo.template($("#dbtemplate").html())
+            });
+
+            $("#dbpager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: dbdataSource,
+                responsive: false,
+            });
+
+
+            //然后展示grafana的list
+            var grafanas = new Array();
+            for (var j = 0; j < allgrafanas.length; j++) {
+                if (allapps[i].value == allgrafanas[j].app_id) {
+                    grafanas.push(allgrafanas[j])
+                }
+            }
+            var grafanadataSource = new kendo.data.DataSource({
+                data: grafanas,
+                pageSize: 10
+            });
+
+            $("#grafanaview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: grafanadataSource,
+                template: kendo.template($("#grafanatemplate").html())
+            });
+
+            $("#grafanapager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: grafanadataSource,
+                responsive: false,
+            });
+
+
+            //然后展示wiki的list
+            var wikis = new Array();
+            for (var j = 0; j < allwikis.length; j++) {
+                if (allapps[i].value == allwikis[j].app_id) {
+                    wikis.push(allwikis[j])
+                }
+            }
+            var wikidataSource = new kendo.data.DataSource({
+                data: wikis,
+                pageSize: 10
+            });
+
+            $("#wikiview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: wikidataSource,
+                template: kendo.template($("#wikitemplate").html())
+            });
+
+            $("#wikipager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: wikidataSource,
+                responsive: false,
+            });
+        }
+
+        // alert(appplaybooks)
+
+
+    </script>
+
+    <style>
+        .listView {
+            padding: 10px 5px;
+            margin-bottom: -1px;
+            min-height: 110px;
+            /* Avoid cutout if font or line is bigger */
+            font: inherit;
+        }
+
+        .product {
+            float: left;
+            position: relative;
+            width: 110px;
+            height: 170px;
+            margin: 0 5px;
+            padding: 0;
+        }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+        .product h3 {
+            margin: 0;
+            padding: 5px 5px 0 0;
+            max-width: 110px;
+            overflow: hidden;
+            line-height: 1.1em;
+            font-size: .9em;
+            font-weight: normal;
+            text-transform: uppercase;
+            color: #999;
+            word-break:break-all;
+            text-align:center;
+        }
+
+        .product p {
+            visibility: hidden;
+        }
+
+        .k-listview:after {
+            content: ".";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+    </style>
+
+
+</div>
+
+{% endblock %}

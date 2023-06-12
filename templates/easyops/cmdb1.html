@@ -1,0 +1,75 @@
+{% extends 'easyops/base.html' %}
+{% block title %}index{% endblock %}
+{% block body_block %}
+<div id="appid">
+</div>
+<script>
+    $("#appid").kendoGrid({
+        editable: 'inline',
+        toolbar: ["create", "save", "cancel"],
+        columns: [
+            {
+                field: 'appname',
+                title: '应用名称'
+            },
+            {
+                field: 'appdesc',
+                title: '应用描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy']
+            }
+        ],
+        dataSource: {
+            transport: {
+                read: {
+                    url: 'http://127.0.0.1:8000/easyops/listing/app',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: 'http://127.0.0.1:8000/easyops/create/app',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: 'http://127.0.0.1:8000/easyops/updatelist/app',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: 'http://127.0.0.1:8000/easyops/delete/app',
+                    dataType: 'json',
+                    type: 'POST'
+                }          
+
+
+            },
+            schema: {
+                    data: "Data",
+                    model: {
+                        id: "id",
+                        fields: {
+                            appname: {
+                                defaultValue: '张三',
+                                type: "string",
+                                //自定义验证规则
+
+                            },
+                            appdesc: {
+                                type: "string",
+
+                            }
+
+                        }
+                    }
+                }
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}

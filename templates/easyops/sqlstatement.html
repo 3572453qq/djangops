@@ -1,0 +1,193 @@
+{% extends 'easyops/base.html' %}
+{% block title %}sqlstatement{% endblock %}
+{% block body_block %}
+<!-- <style type="text/css">
+    input[name="sqlstr"] {
+        height: 300px;
+        word-wrap: break-all;
+        word-break: normal;
+    }
+</style> -->
+<div class='row-fluid' id="app">
+            {% if perms.easyops.sqlexec %}
+            <div id="{{sqlstr.dbname}}-{{sqlstr.sqlname}}">
+    
+                <p>{{sqlstr.sqlstr}}</p>
+                {% for arg in args %}
+                    <p>{{arg}}: <input type="text" id="{{sqlstr.id}}-{{arg}}"/></p>
+                {% endfor %}
+                {% if validsql == '1' %}
+                <button type='button' class='btn btn-primary' id="runsql">运行sql</button>
+                {% endif %}
+                <div id="result">
+
+                </div>
+            </div>
+            {% endif %}
+            </br>
+            <input id="quit" type="button" value="退出">
+
+</div>
+
+<script>
+    
+
+    var sqlstr = {{ sqlstr| safe}};
+    var args= {{args|safe}}
+    // alert(sqlstr)
+    
+    function textAreaEditor(container, options) {
+        $('<textarea class="k-textbox" name="' + options.field + '" style="width:100%;height:300px;" />').appendTo(container);
+    }
+
+        var isDateField =[];
+        $("#runsql").kendoButton({
+            click: function () {
+                // var chosevalue = $(".left-pane li.active").attr('data-id');
+                // alert(chosevalue)
+                check_session_timeout()
+                button_id = event.target.id
+                // alert(event.target.id);
+                            aarg ={}
+                for (var j=0;j<args.length;j++)
+                {   
+                    aarg[args[j]]=document.getElementById(sqlstr.id+'-'+args[j]).value; 
+                    // alert(JSON.stringify(args))
+                }
+
+                $("#result").empty();
+                $("#result").html('正在执行，等待加载结果，请耐心等候。。。')
+                
+                
+                
+                $.ajax({
+                    // async: false,
+                    type: 'POST',
+                    url: '/easyops/runsql',
+                    data: {
+                        'runtype': 1,
+                        'sqlid': sqlstr.id,
+                        'args':JSON.stringify(aarg)
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        // alert(result)
+                        if(result['isok']==0)
+                        {
+                            alert(result['errmsg'])
+                            $("#result").html('执行失败，错误原因是：'+result['errmsg'])
+                        }
+                        else
+                        { 
+                            generateGrid(result);
+                        }
+                    }
+                });
+
+            }
+
+        })
+    
+
+    function generateGrid(response) {
+        var model = generateModel(response);
+        var columns = generateColumns(response);
+        var myDate = new Date();
+        var ls_date = myDate.getMinutes().toString()+myDate.getSeconds().toString();
+        // alert(myDate.toString().replace(/\s/g,''))
+        // alert(ls_date)
+        $("#result").empty();
+        var grid = $("#result").kendoGrid({
+          toolbar:["excel"],
+          excel: {
+                fileName: 'result'+ls_date+".xlsx",
+                proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                filterable: true,
+                allPages: true
+            },
+          dataSource: {
+            transport:{
+              read:  function(options){
+                options.success(response.data);
+              }
+            },
+
+            schema: {
+              model: model
+            }
+          },
+          columns: columns,
+          pageable: {pageSize: gridpagesize},
+          editable:false,
+          sortable: true,
+          resizable: true,
+        });
+      }
+
+      function generateColumns(response){
+        var columnNames = response["columns"];
+        return columnNames.map(function(name){
+          return { field: name, format: (isDateField[name] ? "{0:D}" : "") };
+        })
+      }
+
+      function generateModel(response) {
+        var sampleDataItem = response["data"][0];
+
+        var model = {};
+        var fields = {};
+        for (var property in sampleDataItem) {
+          if(property.indexOf("ID") !== -1){
+            model["id"] = property;
+          }
+          var propType = typeof sampleDataItem[property];
+
+          if (propType === "number" ) {
+            fields[property] = {
+              type: "number",
+              validation: {
+                required: true
+              }
+            };
+            if(model.id === property){
+              fields[property].editable = false;
+              fields[property].validation.required = false;
+            }
+          } else if (propType === "boolean") {
+            fields[property] = {
+              type: "boolean"
+            };
+          } else if (propType === "string") {
+            fields[property] = {
+              type: "string"
+            };
+          } else {
+            fields[property] = {
+              validation: {
+                required: true
+              }
+            };
+          }
+        }
+
+        model.fields = fields;
+
+        return model;
+      }
+
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+    // document.querySelector('#quit').onclick = function (e) {
+    //     // self.location = "/easyops/standardop";
+        
+    // };
+
+
+
+</script>
+
+{% endblock %}

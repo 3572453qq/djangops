@@ -1,0 +1,148 @@
+{% extends 'easyops/base.html' %}
+{% block title %}uploadfile{% endblock %}
+{% block body_block %}
+<style>
+    html,body{height:100%}
+    </style>
+
+<div id="filemanager"></div>
+{{ dirname }}
+
+<input id="quit" type="button" value="退出">
+
+<div>
+    <div class="demo-section">
+        <input name="files" id="files" type="file" />
+    </div>
+</div>
+<script>
+    
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+    
+    
+    var files = ''
+            
+    filemanager_list = {{ filemanager_list | safe }}
+    console.log(filemanager_list)
+    uploaddirid = {{ uploaddirid|safe }}
+    var fm=$("#filemanager").kendoFileManager({
+                initialView: "grid",
+                views: {
+                    grid:{
+                        columns: [
+                            {
+                                field: 'name',
+                                title: 'name',
+                                width: "30px"
+                            },
+                            {
+                                field: 'modified',
+                                title: 'modified date',
+                                width: "60px"
+                            },
+                            {
+                                field: 'size',
+                                title: 'file size',
+                                width: "20px"
+                            },
+                        ],
+                        resizable: true,
+                       
+                    }
+                },
+                // dataSource: filemanager_list,
+                dataSource: {
+                    schema: kendo.data.schemas.filemanager,
+                    transport: {
+                        read: 
+                            // function(options) {
+                            //     $.ajax({
+                            //         url: "https://testops.genzon.com.cn/easyops/dirlist/"+String(uploaddirid),
+                            //         method: "POST",
+                            //         data: function() {
+                            //                 return {
+                            //                     skip: 0,
+                            //                 }
+                            //             },
+                                    
+                            //     });
+                            // },
+                        {
+                            url: "https://testops.genzon.com.cn/easyops/dirlist/"+String(uploaddirid),
+                            method: "POST",
+                            data:  function() {
+                                            return {
+                                                skip: 11,
+                                                take: files
+                                            }
+                            }
+                        }
+                    },
+                },
+                // uploadUrl: "/kendo-ui/service/FileManager/Upload",
+                toolbar: {
+                    items: [
+                    { name: "upload" },
+                    { name: "sortField" },
+                    { name: "changeView" },
+                    { name: "spacer" },
+                    { name: "details" },
+                    { name: "search" }
+
+                    ]
+                },
+                draggable: true,
+                // select:getSelectedFiles,
+            
+                navigate:onnavigate,
+                
+            });
+
+        function getSelectedFiles(){
+            var filemanager = $("#filemanager").getKendoFileManager();
+            r = filemanager.getSelected()
+            files = r[0].fullpath
+            /* The result can be observed in the DevTools(F12) console of the browser. */
+            console.log(files)
+        } 
+
+        
+        function onnavigate(e){
+            var filemanager = $("#filemanager").getKendoFileManager();
+            // r = e.getSelected()
+            // files = r[0].fullpath
+            // var filemanager = $("#filemanager").getKendoFileManager();
+            // r = filemanager.getSelected()
+            // files = r[0].fullpath
+            // console.log(files)
+            console.log('e.path is:'+e.path)
+            // console.log('e.sender.path() is:'+e.sender.path())
+            // console.log('e.sender.getselected() is:'+e.sender.getSelected())
+            r = e.sender.getSelected()
+            console.log('r is:',r)
+            // apath = e.sender.path()
+
+            // files = r[0].fullpath
+            
+            // console.log(files)
+            // console.log(apath)
+            // return files
+        }   
+        
+        $(document).ready(function() {
+            $("#files").kendoUpload({
+                select: getSelectedFiles
+               
+            });
+        });
+</script>
+
+
+
+    
+{% endblock %}

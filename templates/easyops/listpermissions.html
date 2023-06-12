@@ -1,0 +1,148 @@
+{% extends 'easyops/base.html' %}
+{% block title %}permission{% endblock %}
+{% block body_block %}
+<div class='row' >
+    <div id="listpermissions">
+
+    </div>
+</div>
+<div class='row-fluid'>
+    <div >
+        <p>"请输入权限描述": <input type="textarea" id="perm-name"/></p>
+        <p>"请输入权限编码": <input type="textarea" id="perm-codename"/></p>
+        <button type='button' class='btn btn-primary' id="addperm">增加权限</button>
+    </div>
+    </br>
+    <div id="result">
+
+    </div>
+    <input id="quit" type="button" value="退出">
+</div>
+
+<script>
+    
+    var url = document.location.toString();
+    var arrUrl = url.split("//");
+
+    var start = arrUrl[1].split("/"); 
+    base_url = arrUrl[0] + "//" + start[0];
+
+    $("#addperm").kendoButton({
+            click: function () {
+                // alert(chosevalue)
+                check_session_timeout()
+                
+                // alert(event.target.id);
+
+                ls_name = document.getElementById('perm-name').value
+                ls_codename = document.getElementById('perm-codename').value
+                                
+                $.ajax({
+                    // async: false,
+                    type: 'POST',
+                    url: '/easyops/addperm',
+                    data: {
+                        'privcode': ls_codename,
+                        'privname': ls_name,
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        // alert(result)
+                        if(result['isok']==0)
+                        {
+                            alert(result['errmsg'])
+                            $("#result").html('执行失败，错误原因是：'+result['errmsg'])
+                        }
+                        else
+                        {
+                            document.getElementById('perm-name').value=''
+                            ls_codename = document.getElementById('perm-codename').value=''
+                            alert('增加成功')
+                            $("#result").html('执行成功')
+                        }
+                       
+                    }
+                });
+
+            }
+
+        })
+
+    
+    $("#quit").kendoButton({
+            click: function () {
+                history.go(-1)
+            }
+    })
+
+    $("#listpermissions").kendoGrid({
+        dataSource: {
+            type: "odata",
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/Permission',
+                    dataType: 'json',
+                    type: 'GET'
+                }
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        name: {
+                            type: "string",
+                        },
+                        content_type_id: {
+                            type: "string",
+
+                        },
+                        codename: {
+                            type: "string",
+
+                        },
+                        
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+            
+
+        },
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize },
+        
+        columns: [
+            {
+                field: 'name',
+                title: '权限描述'
+            },
+            {
+                field: 'content_type_id',
+                title: '权限归属'
+            },
+            {
+                field: 'codename',
+                title: '权限编码'
+            },
+            
+        ],
+        toolbar: ["search"],
+        search: {
+            fields: ["name","codename"]
+        }
+        
+
+    });
+
+
+
+       
+
+</script>
+
+{% endblock %}

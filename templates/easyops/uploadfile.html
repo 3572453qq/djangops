@@ -1,0 +1,115 @@
+{% extends 'easyops/base.html' %}
+{% block title %}uploadfile{% endblock %}
+{% block body_block %}
+<style>
+    html,body{height:100%}
+</style>
+<p>
+    当前主机：{{host}}，当前目录: {{dirpath}}
+</p>
+<div id="filemanager"></div>
+<form method="post" 
+ style="width:500px">
+ <input name="files" id="fileUpload" type="file" />
+ </form>
+
+{{ dirname }}
+
+<input id="quit" type="button" value="退出">
+
+
+<script>
+    
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+    
+    
+    var files = ''
+            
+    filemanager_list = {{ filemanager_list | safe }}
+    console.log(filemanager_list)
+    uploaddirid = {{ uploaddirid|safe }}
+    var fm=$("#filemanager").kendoFileManager({
+                initialView: "grid",
+                views: {
+                    grid:{
+                        columns: [
+                            {
+                                field: 'name',
+                                title: 'name',
+                                width: "30px"
+                            },
+                            {
+                                field: 'modified',
+                                title: 'modified date',
+                                width: "60px"
+                            },
+                            {
+                                field: 'size',
+                                title: 'file size',
+                                width: "20px"
+                            },
+                        ],
+                        resizable: true,
+                       
+                    }
+                },
+                // dataSource: filemanager_list,
+                dataSource: {
+                    schema: kendo.data.schemas.filemanager,
+                    transport: {
+                        read:                            
+                        {
+                            url: "/easyops/dirlist/"+String(uploaddirid),
+                            method: "POST",
+                            data:  function() {
+                                            return {
+                                                skip: 11,
+                                                take: files
+                                            }
+                            }
+                        }
+                    },
+                },
+                toolbar: {
+                    items: [
+                    { name: "changeView" },
+                    { name: "spacer" },
+                    { name: "details" },
+                    { name: "search" }
+
+                    ]
+                },
+                draggable: true,
+          
+                
+            });
+
+        $('#fileUpload').kendoUpload(
+            {
+                async: {
+                    'saveUrl': '/easyops/uploadfile{{ uploaddirid }}',
+                    'autoUpload': false
+                },
+                success: function () {
+                    // fm.refresh()
+                    console.log('Upload successful.');
+                },
+                complete: function () {
+                    console.log('Complete Event.');
+                    alert('上传成功！！！')
+                    window.location.href = window.location.href;
+                },
+            }
+        );             
+        
+</script>
+
+
+
+    
+{% endblock %}

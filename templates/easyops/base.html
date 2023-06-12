@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+{% load myTag %}
+{% current_time "%Y-%m-%d %I:%M %p" as the_time %}
+{% expire_seconds as expire_seconds %}
+{% get_applist as get_applist %}
+<html lang="zh-cmn-Hans" style="height: 100%;">
+
+<head>
+    <!-- start: Meta -->
+    <meta charset="utf-8">
+    <meta name="description" content="Bootstrap Metro Dashboard">
+    <meta name="author" content="chuck huang">
+
+    <!-- end: Meta -->
+
+
+    <!-- start: Mobile Specific -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- end: Mobile Specific -->
+
+    <title>{% block title %}{% endblock %}</title>
+
+    <!-- start: CSS -->
+    <link href="/static/kendoandbootstrap/bootstrap-4.2.1-dist/css/bootstrap.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.common.min.css" />
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.default.min.css" />
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.blueopal.min.css" />
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="/static/lks/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="shortcut icon" href="/static/images/gz-titleLogo.png" />
+    <!-- end: CSS -->
+    <!-- start: js -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>    -->
+    <script src="/static/lks/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="/static/lks/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>   
+    <script src="/static/kendoandbootstrap/kendouipro/js/jquery.min.js"></script>
+    <script src="/static/kendoandbootstrap/kendouipro/js/jszip.min.js"></script>
+    <script src="/static/kendoandbootstrap/bootstrap-4.2.1-dist/js/bootstrap.js"></script>
+    <script src="/static/kendoandbootstrap/kendouipro/js/kendo.all.min.js"></script>
+    <script src="/static/kendoandbootstrap/kendouipro/js/cultures/kendo.culture.zh-CN.min.js"></script>
+    <script src="/static/kendoandbootstrap/kendouipro/js/messages/kendo.messages.zh-CN.min.js"></script>
+
+
+    <script>var gridpagesize = 10;</script>
+
+
+    <script type="text/javascript">
+
+        //for the session timeout
+        session_timeout = {{ expire_seconds }};
+        page_load_time = new Date().getTime();
+
+
+        function check_session_timeout() {
+
+            // check timeout
+            // alert(session_timeout)
+            active_seconds = (new Date().getTime() - page_load_time) / 1000;
+            // alert(active_seconds)
+            if (active_seconds >= session_timeout) {
+                alert('会话超时，将重新登录')
+                window.location = '/easyops/index';
+            }
+
+        }
+
+        //Start checking for session timeout
+        //check_session_timeout();
+
+    </script>
+    <!-- end: js -->
+	<style>
+		.dropdown-menu>li:hover{
+			color: red;
+			background: gainsboro;
+		}
+		.dropdown-menu>li>a:hover{
+			background: gainsboro;
+			color: #F08080;
+		}
+		.dropdown-menu>li{
+  
+		}
+		.dropdown-menu>li>a{
+			text-decoration:none;
+			color: black;
+		}
+		#cOlre{
+			color:gray;
+			font-weight: bolder;
+		}
+		#cOlre:hover{
+			color:  #F08080;
+		}
+		#oDiv{
+			background:white ;
+		}
+		#oDiva{
+			color:gray;
+			font-weight: bolder;
+		}
+		#oDiva:hover{
+			color: #F08080;
+		}
+	</style>
+</head>
+<body style="height: 100%;">
+    {% csrf_token %}
+    <div class="container-fluid" style="height: 100%;">
+        <div class="btn navbar navbar-inverse navbar-fixed-top" id="oDiv">
+            <ul class='nav nav-tabs'>
+                <li class='active'>
+                    <a id="cOlre" class='nav-link {% if module == "index" %}active {% endif %}' data-toggle='pill'
+                        onclick="window.location.href='/easyops/index'">首页</a>
+                </li>
+                {% if perms.easyops.cmdb %}
+                <li>
+                    <a id="cOlre" class='nav-link {% if module == "cmdb" %} active {% endif %}' data-toggle='pill'
+                        onclick="window.location.href='/easyops/cmdb'">基础配置</a>
+                </li>
+                {% endif %}
+                {% if perms.easyops.dba %}
+                <li>
+                    <a id="cOlre" class='nav-link {% if module == "sql" %} active {% endif %}' data-toggle='pill'
+                        onclick="window.location.href='/easyops/sql'">SQL配置与执行</a>
+                </li>
+                {% endif %}
+                {% if perms.easyops.admin %}
+                <li class="dropdown">
+                    <a  id="cOlre"class='nav-link {% if module == "admin" %} active {% endif %}' class="dropdown-toggle" data-toggle="dropdown" href="#">管理功能</a>
+                    <ul class="dropdown-menu">
+                        {% if perms.easyops.dba %}
+                        <li>
+                            <a href="/easyops/adminsqloracle">oracle状况查看</a>
+                        </li>
+                        <li>
+                            <a href="/easyops/adminsqlmysql">mysql状况查看</a>
+                        </li>
+                        <li>
+                            <a href="/easyops/adminsqlsqlserver">sqlserver状况查看</a>
+                        </li>
+                        {% endif %}
+                        {% if perms.easyops.oracleunlock %}
+                        <li>
+                            <a href="/easyops/oracleunlock">oracle死锁查看与解锁</a>
+                        </li>
+                        {% endif %}
+                        <li class="divider"></li>
+                        <!-- <li>
+                            <a href="/easyops/ansibleinstall">ansible安装软件</a>
+                        </li>
+                        <li>
+                            <a href="/easyops/standardop">标准化操作</a>
+                        </li> -->
+                        {% if perms.easyops.maintain %}
+                        <li>
+                            <a href="/easyops/listpermissions">权限查看与增加</a>
+                        </li>
+                        <li>
+                            <a href="/easyops/unlockjob">手工解锁job</a>
+                        </li>
+                        {% endif %}
+                         
+                    </ul>
+                </li>
+                {% endif %}
+                <!-- <li class='nav-item'>
+                    <a class='nav-link text-white {% if module == "search" %}active {% endif %}' data-toggle='pill'
+                        onclick="window.location.href='/easyops/search'">搜索</a>
+                </li> -->
+            </ul>
+            <ul class='nav nav-tabs pull-right d-flex'>
+                <li>
+                    <a id="oDiva" class='nav-link'>Hello, {{user.username}}</a>
+                </li>
+                <li>                   
+                    {% if user.is_authenticated %}
+                    <a id="oDiva" class='nav-link' href="{% url 'auth_logout' %}?next=/accounts/login">logout</a>
+                    {% else %}
+                    <a id="oDiva" class='nav-link' href="{% url 'auth_login' %}">login</a>
+                    {% endif %}
+                </li>
+                <li>
+                    <a id="oDiva" class='nav-link' href="/admin">权限管理</a>
+                </li>
+            </ul>
+        </div>
+
+        {% block body_block %}{% endblock %}
+
+    </div>
+
+
+
+</body>

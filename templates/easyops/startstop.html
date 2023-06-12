@@ -1,0 +1,409 @@
+{% extends 'easyops/base.html' %}
+{% block title %}sql{% endblock %}
+{% block body_block %}
+<!-- <style type="text/css">
+    input[name="sqlstr"] {
+        height: 300px;
+        word-wrap: break-all;
+        word-break: normal;
+    }
+</style> -->
+
+<div class='row' id="app">
+    <div class="col-2">
+        <ul class="nav nav-pills flex-column">
+
+            {% if perms.easyops.sqlexec %}
+            {% for sqlstr in sqlstrs %}
+            <li class="nav-item left-pane" data-id={{sqlstr.id}}>
+                <a class='nav-link' href="#{{sqlstr.dbname}}-{{sqlstr.sqlname}}"
+                    data-toggle='pill'>{{sqlstr.dbname}}-{{sqlstr.sqldesc}}</a>
+            </li>
+            {% endfor %}
+            <!-- [[goodname]]
+            
+            <li v-for="v_sqlstr in v_sqlstrs">
+                <a class='nav-link' href="#[[v_sqlstr.dbname]]-[[v_sqlstr.sqlname]]"
+                    data-toggle='pill'>[[v_sqlstr.dbname]]-[[v_sqlstr.sqldesc]]</a>
+                [[v_sqlstr.sqlstr]]    
+            </li>
+         
+            {% endif %} -->
+        </ul>
+
+    </div>
+    <div class="col-10">
+        <div class="tab-content">
+            <div class="tab-pane fade " id="sqls">
+                <div id="sqlid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="dbconnection">
+                <div id="dbid">
+                </div>
+            </div>
+
+            {% if perms.easyops.sqlexec %}
+            {% for sqlstr in sqlstrs %}
+            <div class="tab-pane fade" id="{{sqlstr.dbname}}-{{sqlstr.sqlname}}">
+                <!-- <p>[[v_sqlstrs]]</p> -->
+                <p>{{sqlstr.sqlstr}}</p>
+                <button type='button' class='btn btn-primary' id="runsql{{sqlstr.id}}">运行sql</button>
+                <div id="result{{sqlstr.id}}">
+
+                </div>
+
+                <!-- <form>
+                    <table id='listtable{{sqlstr.id}}'>
+                        <thead id='table_head{{sqlstr.id}}'>
+                            <tr>
+                                <th>column1</th>
+                                <th>column2</th>
+                            </tr>
+
+                        </thead>
+                        <tbody>
+
+                        </tbody id='table_body{{sqlstr.id}}'>
+                    </table>
+                </form> -->
+            </div>
+            {% endfor %}
+            {% endif %}
+
+
+        </div>
+
+    </div>
+</div>
+<script>
+    vueobj = new Vue({
+        el: "#app",
+        delimiters: ['[[', ']]'],
+        data: {
+            goodname: 'huangchao',
+            v_sqlstrs : {{sqlstrs|safe}},
+            // v_sqlstr: {{sqlstr|safe}},
+            persons: [{name:'jack'},
+                {name:'tom'}
+            ]
+        }
+    });
+    var url = document.location.toString();
+    var arrUrl = url.split("//");
+
+    var start = arrUrl[1].split("/");
+    var sqlstrs = {{ sqlstrs| safe}};
+    
+    base_url = arrUrl[0] + "//" + start[0];
+
+    console.log(base_url);
+    console.log('abcdefg')
+    console.log(sqlstrs)
+    for (var i = 0; i < sqlstrs.length; i++) {
+        console.log(sqlstrs[i].sqlname)
+    }
+
+    function textAreaEditor(container, options) {
+        $('<textarea class="k-textbox" name="' + options.field + '" style="width:100%;height:300px;" />').appendTo(container);
+    }
+    var copiedrow=false
+    $("#sqlid").kendoGrid({
+        editable: 'popup',
+        toolbar: ["create", "save", "cancel"],
+        columns: [
+            {
+                field: 'dbname',
+                title: '数据库名称'
+            },
+            {
+                field: 'sqlname',
+                title: 'sql名称'
+            },
+            {
+                field: 'sqlstr',
+                title: 'sql语句',
+                // height: "500px", 
+                editor: textAreaEditor,
+                
+            },
+            {
+                field: 'sqlpriv',
+                title: 'sql权限'
+            },
+            {
+                field: 'sqldesc',
+                title: 'sql语句描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy', 
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            copiedrow=true
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (e.model.isNew() && copiedrow) {
+                // e.sender.closeCell(e.container)
+                e.model.set("dbname", newItem.dbname)
+                e.model.set("sqlname", newItem.sqlname)
+                e.model.set("sqlstr", newItem.sqlstr)
+                e.model.set("sqlpriv", newItem.sqlpriv)
+                e.model.set("sqldesc", newItem.sqldesc)
+                copiedrow=false
+            }
+        },
+        dataSource: {
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/sqlstatement',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/sqlstatement',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/sqlstatement',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/sqlstatement',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        dbname: {
+                            type: "string",
+                        },
+                        sqlname: {
+                            type: "string",
+                        },
+                        sqlstr: {
+                            type: "string",
+                            validation: {
+                                        required: true,
+                                        sqlstrvalidation: function (input) {
+                                            if (input.is("[name='sqlstr']") && input.val() != "") {
+                                                // alert('Only Select statements allowed')
+                                                // input.attr("sqlstrvalidation-msg", "Only Select statements allowed");
+                                                // return /^select.*/i.test(input.val());
+                                                if(/^select.*/i.test(input.val()))
+                                                { return true}
+                                                else
+                                                { alert('Only Select statements allowed');
+                                                    return false;
+                                                }
+                                            }
+                                            
+
+                                            return true;
+                                        }
+                                    }
+                        },
+                        sqlpriv: {
+                            type: "string",
+                        },
+                        sqldesc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+
+            pageSize: gridpagesize
+        },
+        sortable: true,
+        resizable: true,
+        pageable: true,
+
+    });
+
+    $.ajaxSetup({
+        // data: { csrfmiddlewaretoken: '{{ csrf_token }}' }
+        // type: 'POST',
+        // complete: function(xhr,status) {
+        //     // var sessionStatus = xhr.getResponseHeader('sessionstatus');
+        //     if(status == 302) {
+        //         var top = getTopWinow();
+        //         var yes = confirm('由于您长时间没有操作, session已过期, 请重新登录.');
+        //         if (yes) {
+        //             top.location.href = '/easyops/index';            
+        //         }
+        //     }
+        // }
+    })
+
+    for (var i = 0; i < sqlstrs.length; i++) 
+    {
+        // alert(sqlstrs[i].sqlstr);
+        // alert("#runsql"+sqlstrs[i].id);
+        var isDateField =[];
+        $("#runsql"+sqlstrs[i].id).kendoButton({
+            click: function () {
+                // var chosevalue = $(".left-pane li.active").attr('data-id');
+                // alert(chosevalue)
+                check_session_timeout()
+                button_id = event.target.id
+                // alert(event.target.id);
+                var reg = /\d+/g; 
+                chosenvalue = button_id.match(reg)[0]
+                $("#result"+chosenvalue).empty();
+                $("#result"+chosenvalue).html('正在执行，等待加载结果，请耐心等候。。。')
+                
+                // $("#result"+chosenvalue).kendoTextBox({
+                //         value: "正在执行，等待加载结果，请稍候。。。",
+                //         placeholder: "Name..."}
+                //     );
+                // var tbody=window.document.getElementById("table_body"+chosenvalue)
+                
+                // var thead=window.document.getElementById("table_head"+chosenvalue)
+                
+                $.ajax({
+                    // async: false,
+                    type: 'POST',
+                    url: '/easyops/runsql',
+                    data: {
+                        'runtype': 1,
+                        'sqlid': chosenvalue
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        // alert(result)
+                        if(result['isok']==0)
+                        {
+                            alert(result['errmsg'])
+                            $("#result"+chosenvalue).html('执行失败，错误原因是：'+result['errmsg'])
+                        }
+                        else
+                        { 
+                            generateGrid(result);
+                        }
+                    }
+                });
+
+            }
+
+        })
+    }
+
+    function generateGrid(response) {
+        var model = generateModel(response);
+        var columns = generateColumns(response);
+        var myDate = new Date();
+        var ls_date = myDate.getMinutes().toString()+myDate.getSeconds().toString();
+        // alert(myDate.toString().replace(/\s/g,''))
+        // alert(ls_date)
+        $("#result"+chosenvalue).empty();
+        var grid = $("#result"+chosenvalue).kendoGrid({
+          toolbar:["excel"],
+          excel: {
+                fileName: 'result'+chosenvalue+ls_date+".xlsx",
+                proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                filterable: true,
+                allPages: true
+            },
+          dataSource: {
+            transport:{
+              read:  function(options){
+                options.success(response.data);
+              }
+            },
+
+            schema: {
+              model: model
+            }
+          },
+          columns: columns,
+          pageable: {pageSize: gridpagesize},
+          editable:false,
+          sortable: true,
+          resizable: true,
+        });
+      }
+
+      function generateColumns(response){
+        var columnNames = response["columns"];
+        return columnNames.map(function(name){
+          return { field: name, format: (isDateField[name] ? "{0:D}" : "") };
+        })
+      }
+
+      function generateModel(response) {
+        var sampleDataItem = response["data"][0];
+
+        var model = {};
+        var fields = {};
+        for (var property in sampleDataItem) {
+          if(property.indexOf("ID") !== -1){
+            model["id"] = property;
+          }
+          var propType = typeof sampleDataItem[property];
+
+          if (propType === "number" ) {
+            fields[property] = {
+              type: "number",
+              validation: {
+                required: true
+              }
+            };
+            if(model.id === property){
+              fields[property].editable = false;
+              fields[property].validation.required = false;
+            }
+          } else if (propType === "boolean") {
+            fields[property] = {
+              type: "boolean"
+            };
+          } else if (propType === "string") {
+            fields[property] = {
+              type: "string"
+            };
+          } else {
+            fields[property] = {
+              validation: {
+                required: true
+              }
+            };
+          }
+        }
+
+        model.fields = fields;
+
+        return model;
+      }
+
+
+
+
+
+
+</script>
+
+{% endblock %}

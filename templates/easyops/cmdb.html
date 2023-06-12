@@ -1,0 +1,1775 @@
+{% extends 'easyops/base.html' %}
+{% block title %}cmdb{% endblock %}
+{% block body_block %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<!-- 引入组件库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<style>
+    div.k-edit-form-container {
+        width: 1000px;
+        height: auto;
+    }
+</style>
+
+<style>
+	.nav-link{
+		padding-top: -40px;
+		text-align: center;
+		color: gray;
+	}
+	.nav-link:hover{
+		background: #e2e2e266;
+		color: gray;
+	}
+</style>
+<div class='row'>
+    <div class="col-2">
+        <ul class="nav nav-pills flex-column" id="myTab">
+            <li class="list-group-item list-group-item-light acitve">
+                <a class='nav-link' href='#apps' data-toggle='pill'>
+                    应用配置
+                </a>
+            </li>
+            {% if perms.easyops.dbconnection %}
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#dbconnection" data-toggle='pill'>数据库配置</a>
+            </li>
+            {% endif %}
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#adminsql" data-toggle='pill'>
+                    数据库管理sql配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#server" data-toggle='pill'>
+                    主机配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#ansibletask" data-toggle='pill'>
+                    playbook配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#grafanareport" data-toggle='pill'>
+                    grafana报表配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#wikidoc" data-toggle='pill'>
+                    文档配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#ac" data-toggle='pill'>
+                    可用性检查配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#logfile" data-toggle='pill'>
+                    日志文件配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#uploaddir" data-toggle='pill'>
+                    上传目录配置
+                </a>
+            </li>
+            <li class="list-group-item list-group-item-light">
+                <a class='nav-link' href="#prometheus" data-toggle='pill'>
+                    prometheus配置
+                </a>
+            </li>
+        </ul>
+
+    </div>
+    <div class="col-10">
+        <div class="tab-content">
+            <div class="tab-pane fade " id="apps">
+                <div id="appid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="dbconnection">
+                <div id="dbid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="adminsql">
+                <div id="adminsqlid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="server">
+                <div id="serverid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="ansibletask">
+                <div id="ansibletaskid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="grafanareport">
+                <div id="grafanareportid">
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="wikidoc">
+                <div id="wikidocid">
+                </div>
+            </div>      
+            
+            <div class="tab-pane fade" id="ac">
+                <div id="acid">
+                </div>
+            </div> 
+            <div class="tab-pane fade" id="logfile">
+                <div id="logfileid">
+                </div>
+            </div> 
+            <div class="tab-pane fade" id="uploaddir">
+                <div id="uploaddirid">
+                </div>
+            </div> 
+            <div class="tab-pane fade" id="prometheus">
+                <div id="prometheusid">
+                </div>
+            </div>
+ 
+
+        </div>
+
+    </div>
+</div>
+<script>
+
+    function sleep(delay) {
+        var start = new Date().getTime();
+        while (new Date().getTime() < start + delay);
+    }
+
+    var url = document.location.toString();
+    var arrUrl = url.split("//");
+
+    var start = arrUrl[1].split("/");
+    base_url = arrUrl[0] + "//" + start[0];
+
+    console.log(base_url);
+    console.log('abcdefg')
+    // console.log({{total|safe}})
+    var copiedrow = false
+    function textAreaEditor(container, options) {
+        $('<textarea class="k-textbox" name="' + options.field + '" style="width:100%;height:300px;" />').appendTo(container);
+    }
+
+    allapps = {{ allapps | safe }}
+    allprivs = {{ allprivs | safe }}
+    ansible_mode = [{'value':'adhoc','text':'adhoc'},{'value':'playbook','text':'playbook'}]
+    actype = [{'value':'web','text':'web'},{'value':'socket','text':'socket'},{'value':'db','text':'db'},{'value':'collection','text':'检查集合'}]
+    console.log(allapps)
+
+    $("#appid").kendoGrid({
+        dataSource: {
+            // type: "odata",
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/app',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/app',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/app',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/app',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        appparentid: {
+                            type: "string",
+                        },
+                        appname: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        appdesc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+            //一旦修改了app，需要重载整个页面以反映改变
+            requestEnd: function(e) {
+                var response = e.response;
+                var type = e.type;
+            /* The result can be observed in the DevTools(F12) console of the browser. */
+                console.log(type); // displays "read"
+                if(type=='update' || type=='create' || type=='destroy'){
+                    sleep(500)  //等待0.5秒
+                    window.location.href = window.location.href;
+                }
+            }
+
+        },
+        editable: 'inline',
+        sortable: true,
+        resizable: true,
+        pageable: { numeric: true,
+            previousNext: true,
+            responsive: false,
+            // messages: {
+            // display: "Total: {2}" 
+            // }
+        },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appname","appdesc"]
+        },
+        columns: [
+            {
+                field: 'appparentid',
+                values: allapps,
+                title: '上级应用'
+            },
+            {
+                field: 'appname',
+                title: '应用名称'
+            },
+            {
+                field: 'appdesc',
+                title: '应用描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+                            copiedrow=true
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (e.model.isNew()&&copiedrow) {
+                e.model.set("appname", newItem.appname)
+                e.model.set("appdesc", newItem.appdesc)
+                e.model.set("appparentid", newItem.appparentid)
+                copiedrow=false
+            }
+        },
+        //下面save和remove都会在提交数据前触发，起不到让数据重新刷新的作用
+        save: function(e) {
+            //需要等待1秒，以使得数据保存生效
+            // sleep(5000);
+            // setTimeout(window.location.reload(true),5000);
+            // window.location.reload(true)
+            // window.location.href = window.location.href;
+        },
+        remove: function(e) {
+           
+        },
+        dataBound: function(e) {
+        }
+
+
+
+    });
+    
+    db_role = [{'value':'system','text':'系统级'},{'value':'user','text':'用户级'}]
+    $("#dbid").kendoGrid({
+        editable: 'popup',
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["app_id","dbname","dbtype","connstr","dbdesc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'dbname',
+                title: '连接名称'
+            },
+            {
+                field: 'dbtype',
+                title: '连接类型'
+            },
+            {
+                field: 'connstr',
+                title: '连接串',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'dbdesc',
+                title: '连接描述'
+            },
+            {
+                field: 'dbpriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'dbrole',
+                values: db_role,
+                title: '数据库角色'
+            },
+            
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("dbname", newItem.dbname)
+                    e.model.set("dbtype", newItem.dbtype)
+                    e.model.set("connstr", newItem.connstr)
+                    e.model.set("dbdesc", newItem.dbdesc)
+                    e.model.set("dbpriv", newItem.dbpriv)
+                    e.model.set("dbrole", newItem.dbrole)
+                }
+            }
+        },
+        dataSource: {
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/dbconnection',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/dbconnection',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/dbconnection',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/dbconnection',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                        },
+                        dbname: {
+                            type: "string",
+                        },
+                        dbtype: {
+                            type: "string",
+                        },
+                        connstr: {
+                            type: "string",
+                        },
+                        dbdesc: {
+                            type: "string",
+
+                        },
+                        dbpriv: {
+                            type: "string",
+
+                        },
+                        dbrole: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+
+
+        },
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+
+    });
+
+
+    
+    $("#adminsqlid").kendoGrid({
+        editable: 'popup',
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["dbtype","sqlname","sqlstr","sqldesc"]
+        },
+        columns: [
+            {
+                field: 'dbtype',
+                title: '数据库类型'
+            },
+            {
+                field: 'sqlname',
+                title: 'sql名称'
+            },
+            {
+                field: 'sqlstr',
+                title: 'sql语句',
+                // height: "500px", 
+                editor: textAreaEditor,
+
+            },
+            {
+                field: 'sqlpriv',
+                title: 'sql权限',
+                editor: privEditor
+            },
+            {
+                field: 'sqldesc',
+                title: 'sql语句描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            copiedrow = true
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (e.model.isNew() && copiedrow) {
+                // e.sender.closeCell(e.container)
+                e.model.set("dbtype", newItem.dbtype)
+                e.model.set("sqlname", newItem.sqlname)
+                e.model.set("sqlstr", newItem.sqlstr)
+                e.model.set("sqlpriv", newItem.sqlpriv)
+                e.model.set("sqldesc", newItem.sqldesc)
+                copiedrow = false
+            }
+        },
+        dataSource: {
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/adminsql',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/adminsql',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/adminsql',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/adminsql',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        dbtype: {
+                            type: "string",
+                        },
+                        sqlname: {
+                            type: "string",
+                        },
+                        sqlstr: {
+                            type: "string",
+                            validation: {
+                                required: true,
+                                sqlstrvalidation: function (input) {
+                                    if (input.is("[name='sqlstr']") && input.val() != "") {
+                                        // alert('Only Select statements allowed')
+                                        // input.attr("sqlstrvalidation-msg", "Only Select statements allowed");
+                                        // return /^select.*/i.test(input.val());
+                                        if (/^select.*/i.test(input.val())) { return true }
+                                        else {
+                                            alert('Only Select statements allowed');
+                                            return false;
+                                        }
+                                    }
+
+
+                                    return true;
+                                }
+                            }
+                        },
+                        sqlpriv: {
+                            type: "string",
+                        },
+                        sqldesc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+
+            pageSize: gridpagesize
+        },
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+
+    });
+
+
+    
+    $("#serverid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/Server',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/Server',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/Server',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/Server',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        hostname: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        private_ip: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'inline',
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","hostname","private_ip"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'hostname',
+                title: '主机名称'
+            },
+            {
+                field: 'private_ip',
+                title: '内网ip'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("hostname", newItem.hostname)
+                    e.model.set("private_ip", newItem.private_ip)
+                }
+            }
+        },
+
+    });
+
+
+    
+    $("#ansibletaskid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/ansibletasks',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/ansibletasks',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/ansibletasks',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/ansibletasks',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        mode: {
+                            type: "string",
+                        },
+                        playbook: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        host_pattern: {
+                            type: "string",
+                        },
+                        module: {
+                            type: "string",
+                        },
+                        extravars: {
+                            type: "string",
+                            
+                        },
+                        ansiblepriv: {
+                            type: "string",
+
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","mode","module","host_pattern", "playbook","extravars","desc"]
+        },
+        filterable: {
+                    mode: "row"
+                },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用',
+                // filterable: {
+                //         cell: {
+                //             operator: "contains",
+                //             suggestionOperator: "contains"
+                //         }
+                // },
+                width:"300px"
+            },
+            {
+                field: 'mode',
+                values:ansible_mode,
+                title: '执行模式',
+                filterable: false
+            },
+            {
+                field: 'playbook',
+                title: 'playbook名称',
+                filterable: false
+            },
+            {
+                field: 'host_pattern',
+                title: 'adhoc模式下主机组',
+                filterable: false
+            },
+            {
+                field: 'module',
+                title: 'adhoc模式下module',
+                filterable: false
+            },
+            {
+                field: 'extravars',
+                title: '所带参数',
+                editor: textAreaEditor,
+                filterable: false
+            },
+            {
+                field: 'ansiblepriv',
+                title: '所需权限',
+                editor: privEditor,
+                filterable: false
+            },
+            {
+                field: 'desc',
+                title: '描述',
+                filterable: false
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("mode", newItem.mode)
+                    e.model.set("playbook", newItem.playbook)
+                    e.model.set("host_pattern",newItem.host_pattern)
+                    e.model.set("module",newItem.module)
+                    e.model.set("extravars", newItem.extravars)
+                    e.model.set("ansiblepriv", newItem.ansiblepriv)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+        
+
+    });
+    function privEditor(container, options, e) {
+    $('<input required data-bind="value:' + options.field + '"/>')
+      .appendTo(container)
+      .kendoAutoComplete({
+        filter: "contains",
+        dataSource: allprivs,
+        dataTextField: "name",
+        minLength: 1
+      });
+    }
+
+    $("#grafanareportid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/grafanareports',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/grafanareports',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/grafanareports',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/grafanareports',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        reportname: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        extravars: {
+                            type: "string",
+                            
+                        },
+                        grafanapriv: {
+                            type: "string",
+
+                        },
+                        reportlink: {
+                            type: "string",
+
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["app_id","reportname",'extravars','reportlink','desc']
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'reportname',
+                title: '报表名称'
+            },
+            {
+                field: 'extravars',
+                title: '报表所带参数',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'grafanapriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'reportlink',
+                title: '报表url',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("reportname", newItem.reportname)
+                    e.model.set("extravars", newItem.extravars)
+                    e.model.set("grafanapriv", newItem.grafanapriv)
+                    e.model.set("reportlink", newItem.reportlink)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+
+    });
+
+
+    $("#wikidocid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/wikidocs',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/wikidocs',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/wikidocs',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/wikidocs',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        docname: {
+                            type: "string",
+                            //自定义验证规则
+
+                        },
+                        extravars: {
+                            type: "string",
+                            
+                        },
+                        wikipriv: {
+                            type: "string",
+
+                        },
+                        wikilink: {
+                            type: "string",
+
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["app_id","docname","extravars","wikilink","desc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'docname',
+                title: '文档名称'
+            },
+            {
+                field: 'extravars',
+                title: '文档链接所带参数',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'wikipriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'wikilink',
+                title: '文档url',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("docname", newItem.docname)
+                    e.model.set("extravars", newItem.extravars)
+                    e.model.set("wikipriv", newItem.wikipriv)
+                    e.model.set("wikilink", newItem.wikilink)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+
+    });
+
+    $("#acid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/availabilitycheck',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/availabilitycheck',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/availabilitycheck',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/availabilitycheck',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                        },
+                        acname: {
+                            type: "string",
+                        },
+                        actype: {
+                            type: "string",
+                        },
+                        vars: {
+                            type: "string",
+                        },
+                        acpriv: {
+                            type: "string",
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","acname","actype","vars", "acpriv","desc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'actype',
+                values: actype,
+                title: '检查类型'
+            },
+            {
+                field: 'acname',
+                title: '检查名称'
+            },
+            {
+                field: 'vars',
+                title: '检查内容与参数',
+                editor: textAreaEditor,
+            },
+            {
+                field: 'acpriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("acname", newItem.acname)
+                    e.model.set("actype",newItem.actype)
+                    e.model.set("vars",newItem.vars)
+                    e.model.set("acpriv", newItem.acpriv)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+        
+
+    });
+
+    $("#logfileid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/logfile',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/logfile',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/logfile',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/logfile',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                        },
+                        logfilename: {
+                            type: "string",
+                        },
+                        host: {
+                            type: "string",
+                        },
+                        port: {
+                            type: "number",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        password: {
+                            type: "string",
+                        },
+                        dir: {
+                            type: "string",
+                        },
+                        wildcard: {
+                            type: "string",
+                        },
+                        logpriv: {
+                            type: "string",
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","logfilename","host","port", "username","password","dir","wildcard","logpriv","desc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'logfilename',
+                title: '日志下载名称'
+            },
+            {
+                field: 'host',
+                title: '主机ip'
+            },
+            {
+                field: 'port',
+                title: '主机端口',                
+                format: "{0:N0}"
+            },
+            {
+                field: 'username',
+                title: '用户名'
+            },
+            {
+                field: 'password',
+                title: '密码',                
+            },
+            {
+                field: 'dir',
+                title: '日志路径'
+            },
+            {
+                field: 'wildcard',
+                title: '日志通配符',                
+            },
+            {
+                field: 'logpriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("logfilename", newItem.logfilename)
+                    e.model.set("host",newItem.host)
+                    e.model.set("port",newItem.port)
+                    e.model.set("username",newItem.username)
+                    e.model.set("password",newItem.password)
+                    e.model.set("dir",newItem.dir)
+                    e.model.set("wildcard",newItem.wildcard)
+                    e.model.set("logpriv", newItem.logpriv)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+        
+
+    });
+    
+
+    $("#uploaddirid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/uploaddir',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/uploaddir',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/uploaddir',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/uploaddir',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                        },
+                        dirname: {
+                            type: "string",
+                        },
+                        host: {
+                            type: "string",
+                        },
+                        port: {
+                            type: "number",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        password: {
+                            type: "string",
+                        },
+                        dir: {
+                            type: "string",
+                        },
+                        uploadpriv: {
+                            type: "string",
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","dirname","host","port", "username","password","dir","uploadpriv","desc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'dirname',
+                title: '上传名称'
+            },
+            {
+                field: 'host',
+                title: '主机ip'
+            },
+            {
+                field: 'port',
+                title: '主机端口',                
+                format: "{0:N0}"
+            },
+            {
+                field: 'username',
+                title: '用户名'
+            },
+            {
+                field: 'password',
+                title: '密码',                
+            },
+            {
+                field: 'dir',
+                title: '上传路径'
+            },
+            {
+                field: 'uploadpriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("dirname", newItem.dirname)
+                    e.model.set("host",newItem.host)
+                    e.model.set("port",newItem.port)
+                    e.model.set("username",newItem.username)
+                    e.model.set("password",newItem.password)
+                    e.model.set("dir",newItem.dir)
+                    e.model.set("uploadpriv", newItem.uploadpriv)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+        
+
+    });
+
+    $("#prometheusid").kendoGrid({
+        dataSource: {
+
+            transport: {
+                read: {
+                    url: base_url + '/easyops/listing/prometheusconfig',
+                    dataType: 'json',
+                    type: 'GET'
+                },
+                create: {
+                    url: base_url + '/easyops/create/prometheusconfig',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                update: {
+                    url: base_url + '/easyops/updatelist/prometheusconfig',
+                    dataType: 'json',
+                    type: 'POST'
+                },
+                destroy: {
+                    url: base_url + '/easyops/delete/prometheusconfig',
+                    dataType: 'json',
+                    type: 'POST'
+                }
+
+
+            },
+            schema: {
+                data: "Data",
+                total: "total",
+                model: {
+                    id: "id",
+                    fields: {
+                        app_id: {
+                            type: "string",
+                        },
+                        prometheusname: {
+                            type: "string",
+                        },
+                        host: {
+                            type: "string",
+                        },
+                        port: {
+                            type: "number",
+                        },
+                        username: {
+                            type: "string",
+                        },
+                        password: {
+                            type: "string",
+                        },
+                        configfile: {
+                            type: "string",
+                        },
+                        prometheuspriv: {
+                            type: "string",
+                        },
+                        desc: {
+                            type: "string",
+
+                        }
+
+                    }
+                }
+            },
+            pageSize: gridpagesize,
+
+        },
+        editable: 'popup',
+        sortable: true,
+        resizable: true,
+        pageable: { pageSize: gridpagesize,
+            responsive: false, },
+        toolbar: ["create", "save", "cancel","search"],
+        search: {
+            fields: ["appid","prometheusname","host","port", "username","password","configfile","prometheuspriv","desc"]
+        },
+        columns: [
+            {
+                field: 'app_id',
+                values: allapps,
+                title: '应用'
+            },
+            {
+                field: 'prometheusname',
+                title: 'prometheus配置名称'
+            },
+            {
+                field: 'host',
+                title: '主机ip'
+            },
+            {
+                field: 'port',
+                title: '主机端口',                
+                format: "{0:N0}"
+            },
+            {
+                field: 'username',
+                title: '用户名'
+            },
+            {
+                field: 'password',
+                title: '密码',                
+            },
+            {
+                field: 'configfile',
+                title: '带绝对路径配置文件名'
+            },
+            {
+                field: 'prometheuspriv',
+                title: '所需权限',
+                editor: privEditor
+            },
+            {
+                field: 'desc',
+                title: '描述'
+            },
+            {
+                title: '操作',
+                command: ['edit', 'destroy',
+                    {
+                        name: "复制本行",
+                        click: function (e) {
+
+                            // prevent page scroll position change
+                            e.preventDefault();
+                            // e.target is the DOM element representing the button
+                            var tr = $(e.target).closest("tr"); // get the current table row (tr)
+                            // get the data bound to the current table row
+                            newItem = this.dataItem(tr);
+                            this.addRow()
+
+                        }
+                    }]
+            }
+        ],
+        edit: function (e) {
+            if (typeof (newItem) != "undefined") {
+                if (e.model.isNew()) {
+                    e.model.set("app_id", newItem.app_id)
+                    e.model.set("prometheusname", newItem.logfilename)
+                    e.model.set("host",newItem.host)
+                    e.model.set("port",newItem.port)
+                    e.model.set("username",newItem.username)
+                    e.model.set("password",newItem.password)
+                    e.model.set("configfile",newItem.dir)
+                    e.model.set("prometheuspriv", newItem.logpriv)
+                    e.model.set("desc", newItem.desc)
+                }
+            }
+        },
+        
+
+    });
+    window.onload=function(){
+            // alert('imhere')
+            $("#myTab a[href='#apps']").click()
+            // $(".tab-pane").removeClass("active in");
+            // $("#myTab a[href='#apps']").addClass("active in");
+            // $("#myTab a[href='#apps']").tab('show');
+        }
+    
+
+</script>
+
+{% endblock %}

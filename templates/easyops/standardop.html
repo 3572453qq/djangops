@@ -1,0 +1,133 @@
+{% extends 'easyops/base.html' %}
+{% block title %}standardop{% endblock %}
+{% block body_block %}
+
+
+<div class='row' id="app">
+    <div class="col-2">
+        <ul class="nav nav-pills flex-column">
+            {% for aapp in allapps %}
+            <li class="nav-item left-pane" data-id={{aapp.value}}>
+                <a class='nav-link' href="#id{{aapp.value}}" data-toggle='pill'>{{aapp.text}}</a>
+            </li>
+            {% endfor %}
+
+        </ul>
+
+    </div>
+    <div class="col-10">
+        <div class="tab-content">
+
+
+            {% for app in allapps %}
+            <div class="tab-pane fade" id="id{{app.value}}">
+
+                {% for playbook in allplaybooks %}
+                {% if playbook.app_id == app.value %}
+                {{ playbook.playbook }}
+                <br>
+                {% endif %}
+                {% endfor %}
+                <div id="listview-{{app.value}}" class="listView"></div>
+                <div id="pager-{{app.value}}"></div>
+            </div>           
+
+            {% endfor %}
+           
+
+
+
+        </div>
+
+    </div>
+    <script type="text/x-kendo-template" id="template">
+        <div class="product">
+            <img src="/static/images/ansible.png" alt="ansible.png" />
+            <a href='/easyops/ws#:id#'><h3>#:desc#</h3></a>
+        </div>
+    </script>
+
+    <script>
+        var allplaybooks = {{ allplaybooks|safe}};
+        var allapps = {{ allapps|safe}};
+        for (var i = 0; i < allapps.length; i++) {
+            var appplaybooks = new Array();
+            for (var j = 0; j < allplaybooks.length; j++) {
+                if (allapps[i].value == allplaybooks[j].app_id) {
+                    appplaybooks.push(allplaybooks[j])
+                }
+            }
+            var dataSource = new kendo.data.DataSource({
+                data: appplaybooks,
+                pageSize: 20
+            });
+
+            $("#listview-"+allapps[i].value.toString()).kendoListView({
+                dataSource: dataSource,
+                template: kendo.template($("#template").html())
+            });
+
+            $("#pager-"+allapps[i].value.toString()).kendoPager({
+                dataSource: dataSource
+            });
+        }
+
+        // alert(appplaybooks)
+
+
+    </script>
+
+    <style>
+        .listView {
+            padding: 10px 5px;
+            margin-bottom: -1px;
+            min-height: 110px;
+            /* Avoid cutout if font or line is bigger */
+            font: inherit;
+        }
+
+        .product {
+            float: left;
+            position: relative;
+            width: 110px;
+            height: 170px;
+            margin: 0 5px;
+            padding: 0;
+        }
+
+        .product img {
+            width: 110px;
+            height: 110px;
+        }
+
+        .product h3 {
+            margin: 0;
+            padding: 5px 5px 0 0;
+            max-width: 110px;
+            overflow: hidden;
+            line-height: 1.1em;
+            font-size: .9em;
+            font-weight: normal;
+            text-transform: uppercase;
+            color: #999;
+            word-break:break-all;
+            text-align:center;
+        }
+
+        .product p {
+            visibility: hidden;
+        }
+
+        .k-listview:after {
+            content: ".";
+            display: block;
+            height: 0;
+            clear: both;
+            visibility: hidden;
+        }
+    </style>
+
+
+</div>
+
+{% endblock %}

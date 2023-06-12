@@ -1,0 +1,206 @@
+{% extends 'easyops/base.html' %}
+{% block title %}sqlstatement{% endblock %}
+{% block body_block %}
+<!-- <style type="text/css">
+    input[name="sqlstr"] {
+        height: 300px;
+        word-wrap: break-all;
+        word-break: normal;
+    }
+</style> -->
+<div class='row-fluid' id="app" style="width:100%; height:100%; ">
+            {% if perms.easyops.sqlexec %}
+    
+            <textarea id="editor1"  cols="200" style="width:100%; height:30%; " placeholder="pls input sql here(only select allowed):"></textarea>
+                <!-- <textarea id="editor" placeholder="input here..."></textarea> -->
+                    
+                <button type='button' class='btn btn-primary' id="runsql">运行sql</button>
+
+                <div id="result">
+
+                </div>
+                
+      
+            {% endif %}
+            </br>
+            <input id="quit" type="button" value="退出">
+
+</div>
+
+<script>
+    
+
+    var dbid = {{ dbid| safe}};
+    
+//    $("#editor").kendoEditor({
+//         // placeholder: "Please input you select sql statement here...",
+//         tools: [
+//             "viewHtml",
+//             "pdf"
+//         ],
+//     });
+    // var editor = $("#editor").data("kendoEditor");
+    // editor.focus();
+
+    // function textAreaEditor(container, options) {
+    //     $('<textarea class="k-textbox" name="' + options.field + '" style="width:100%;height:300px;" />').appendTo(container);
+    // }
+
+        var isDateField =[];
+        $("#runsql").kendoButton({
+            click: function () {
+                // var chosevalue = $(".left-pane li.active").attr('data-id');
+                // alert(chosevalue)
+                check_session_timeout()
+                button_id = event.target.id
+                // alert(event.target.id);
+        
+                // sqlstr=$("<div/>").html(editor.value()).text()
+                sqlstr=$("#editor1").val()
+                // sqlstr = sqlstr.replace(/(<([^>]+)>)/ig,"");
+                $("#result").empty();
+                $("#result").html('正在执行，等待加载结果，请耐心等候。。。')
+                
+                
+                
+                $.ajax({
+                    // async: false,
+                    type: 'POST',
+                    url: '/easyops/runsql',
+                    data: {
+                        'runtype': 3,
+                        'sqlid': dbid,
+                        'sqlstr':JSON.stringify(sqlstr),
+                        'args':''
+                    },
+                    dataType: "json",
+                    success: function (result) {
+                        // alert(result)
+                        if(result['isok']==0)
+                        {
+                            alert(result['errmsg'])
+                            $("#result").html('执行失败，错误原因是：'+result['errmsg'])
+                        }
+                        else
+                        { 
+                            generateGrid(result);
+                        }
+                    }
+                });
+
+            }
+
+        })
+    
+
+    function generateGrid(response) {
+        var model = generateModel(response);
+        var columns = generateColumns(response);
+        var myDate = new Date();
+        var ls_date = myDate.getMinutes().toString()+myDate.getSeconds().toString();
+        // alert(myDate.toString().replace(/\s/g,''))
+        // alert(ls_date)
+        $("#result").empty();
+        var grid = $("#result").kendoGrid({
+          toolbar:["excel"],
+          excel: {
+                fileName: 'result'+ls_date+".xlsx",
+                proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                filterable: true,
+                allPages: true
+            },
+          dataBound: onDataBound,  
+          dataSource: {
+            transport:{
+              read:  function(options){
+                options.success(response.data);
+              }
+            },
+
+            schema: {
+              model: model
+            }
+          },
+          columns: columns,
+          pageable: {pageSize: gridpagesize},
+          editable:false,
+          sortable: true,
+          resizable: true,
+        });
+      }
+
+      function onDataBound()  
+      {  
+          var grid = $("#result").data("kendoGrid");  
+          for (var i = 0; i < grid.columns.length; i++) {  
+              grid.autoFitColumn(i);  
+          }  
+      }  
+
+      function generateColumns(response){
+        var columnNames = response["columns"];
+        return columnNames.map(function(name){
+          return { field: name, format: (isDateField[name] ? "{0:D}" : "") };
+        })
+      }
+
+      function generateModel(response) {
+        var sampleDataItem = response["data"][0];
+
+        var model = {};
+        var fields = {};
+        for (var property in sampleDataItem) {
+          if(property.indexOf("ID") !== -1){
+            model["id"] = property;
+          }
+          var propType = typeof sampleDataItem[property];
+
+          if (propType === "number" ) {
+            fields[property] = {
+              type: "number",
+              validation: {
+                required: true
+              }
+            };
+            if(model.id === property){
+              fields[property].editable = false;
+              fields[property].validation.required = false;
+            }
+          } else if (propType === "boolean") {
+            fields[property] = {
+              type: "boolean"
+            };
+          } else if (propType === "string") {
+            fields[property] = {
+              type: "string"
+            };
+          } else {
+            fields[property] = {
+              validation: {
+                required: true
+              }
+            };
+          }
+        }
+
+        model.fields = fields;
+
+        return model;
+      }
+
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+    // document.querySelector('#quit').onclick = function (e) {
+    //     // self.location = "/easyops/standardop";
+        
+    // };
+
+
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'easyops/base.html' %}
+{% block title %}unlock job{% endblock %}
+{% block body_block %}
+
+    <div id="validation-success"></div>
+
+    <form id="unlockform" method="post">{% csrf_token %}</form>
+
+<script>
+    var validationSuccess = $("#validation-success");
+    allplaybooks = {{ allplaybooks | safe }}
+    allplaybookids = {{ allplaybookids | safe  }}
+    killed = '{{ killed | safe  }}'
+    if(killed == 'yes'){ alert('解锁成功')}
+    // alert(allplaybooks[0]['id'])
+    // alert(allplaybookids)
+    // alert(killed)
+    $("#unlockform").kendoForm({
+                orientation: "vertical",
+                // orientation: "horizontal",
+                formData: {
+                    job_id: null
+                },
+                buttonsTemplate: "<button class='k-button k-button-md k-button-rectangle k-rounded-md k-button-solid'>解锁此job</button>",
+                items: [
+                    {
+                        field: "job_id", editor: "DropDownList", label: "请选择需要解锁的job：", validation: { required: true },
+                        editorOptions: {
+                            placeholder: "Select job",
+                            dataTextField: "id_appname_desc",
+                            dataValueField: "id",
+                            filter: "contains",
+                            dataSource: {
+                                type: "odata",
+                                // serverFiltering: true,
+                                data: allplaybooks
+                            },
+                            height: 500
+                        }
+                    }
+                ]
+            });
+</script>
+
+{% endblock %}
+
+<!-- https://demos.telerik.com/kendo-ui/form/items -->

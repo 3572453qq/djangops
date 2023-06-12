@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Keyboard Navigation</title>
+    <meta charset="utf-8">
+    <link href="../content/shared/styles/examples-offline.css" rel="stylesheet">
+    <link href="../../styles/kendo.common.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.rtl.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.min.css" rel="stylesheet">
+    <link href="../../styles/kendo.default.mobile.min.css" rel="stylesheet">
+    <script src="../../js/jquery.min.js"></script>
+    <script src="../../js/jszip.min.js"></script>
+    <script src="../../js/kendo.all.min.js"></script>
+    <script src="../content/shared/js/console.js"></script>
+    <script>
+        
+    </script>
+    
+    
+</head>
+<body>
+    
+        <a class="offline-button" href="../index.html">Back</a>
+    
+    <div id="example">
+    <div id="spreadsheet" style="width: 100%;"></div>
+    <script>
+        $(function () {
+            $("#spreadsheet").kendoSpreadsheet({
+                excel: {
+                    // Required to enable saving files in older browsers
+                    proxyURL: "https://demos.telerik.com/kendo-ui/service/export"
+                },
+                pdf: {
+                    proxyURL: "https://demos.telerik.com/kendo-ui/service/export"
+                },
+                sheets: [
+                    {
+                        name: "Food Order",
+                        mergedCells: [
+                            "A1:G1",
+                            "C15:E15"
+                        ],
+                        rows: [
+                            {
+                                height: 70,
+                                cells: [
+                                    {
+                                        index: 0, value: "Invoice #52 - 06/23/2015", fontSize: 32, background: "rgb(96,181,255)",
+                                        textAlign: "center", color: "white"
+                                    }
+                                ]
+                            },
+                            {
+                                height: 25,
+                                cells: [
+                                    {
+                                        value: "ID", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Product", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Quantity", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Price", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Tax", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Amount", background: "rgb(167,214,255)", textAlign: "center", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(167,214,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 216321, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Calzone", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 1, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 12.39, format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C3*D3*0.2", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C3*D3+E3", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 546897, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Margarita", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 2, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 8.79, format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C4*D4*0.2", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C4*D4+E4", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 456231, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Pollo Formaggio", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 1, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 13.99, format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C5*D5*0.2", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C5*D5+E5", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 455873, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Greek Salad", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 1, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 9.49, format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C6*D6*0.2", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C6*D6+E6", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 456892, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Spinach and Blue Cheese", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 3, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 11.49, format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C7*D7*0.2", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C7*D7+E7", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 546564, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Rigoletto", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 1, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 10.99, format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C8*D8*0.2", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C8*D8+E8", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 789455, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Creme Brulee", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 5, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 6.99, format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C9*D9*0.2", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C9*D9+E9", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 123002, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Radeberger Beer", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 4, textAlign: "center", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 4.99, format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C10*D10*0.2", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C10*D10+E10", format: "$#,##0.00", background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                cells: [
+                                    {
+                                        value: 564896, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Budweiser Beer", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 3, textAlign: "center", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: 4.49, format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C11*D11*0.2", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        formula: "C11*D11+E11", format: "$#,##0.00", background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                index: 11,
+                                cells: [
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(229,243,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                index: 12,
+                                cells: [
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(255,255,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                height: 25,
+                                index: 13,
+                                cells: [
+                                    {
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    },
+                                    {
+                                        value: "Tip:", background: "rgb(193,226,255)", color: "rgb(0,62,117)", textAlign: "right", verticalAlign: "bottom"
+                                    },
+                                    {
+                                        formula: "SUM(F3:F11)*0.1", background: "rgb(193,226,255)", color: "rgb(0,62,117)", format: "$#,##0.00", bold: "true", verticalAlign: "bottom"
+                                    },
+                                    {
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            },
+                            {
+                                height: 50,
+                                index: 14,
+                                cells: [
+                                    {
+                                        index: 0, background: "rgb(193,226,255)", color: "rgb(0,62,117)",
+                                    },
+                                    {
+                                        index: 1, background: "rgb(193,226,255)", color: "rgb(0,62,117)",
+                                    },
+                                    {
+                                        index: 2, fontSize: 20, value: "Total Amount:",
+                                        background: "rgb(193,226,255)", color: "rgb(0,62,117)", textAlign: "right"
+                                    },
+                                    {
+                                        index: 5, fontSize: 20, formula: "SUM(F3:F14)", background: "rgb(193,226,255)", color: "rgb(0,62,117)",
+                                        format: "$#,##0.00", bold: "true"
+                                    },
+                                    {
+                                        index: 6, background: "rgb(193,226,255)", color: "rgb(0,62,117)"
+                                    }
+                                ]
+                            }
+                        ],
+                        columns: [
+                            {
+                                width: 100
+                            },
+                            {
+                                width: 215
+                            },
+                            {
+                                width: 115
+                            },
+                            {
+                                width: 115
+                            },
+                            {
+                                width: 115
+                            },
+                            {
+                                width: 155
+                            }
+                        ]
+                    }
+                ]
+            });
+        });
+    </script>
+
+    <div class="box wide">
+        <div class="box-col">          
+            <h4>Actions applied on the content of the Spreadsheet</h4>
+            <ul class="keyboard-legend" style="margin-bottom: 1em;">
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">C</span>
+                    </span>
+                    <span class="button-descr">
+                        Copies the selected cells
+                    </span>
+                </li>
+
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">V</span>
+                    </span>
+                    <span class="button-descr">
+                        Inserts copied or cut cells to a selected location within the worksheet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">X</span>
+                    </span>
+                    <span class="button-descr">
+                        Cuts the selected cells
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Y</span>
+                    </span>
+                    <span class="button-descr">
+                        Repeats the last action if possible by using the <em>Redo</em> command
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Z</span>
+                    </span>
+                    <span class="button-descr">
+                        Reverses the last action if possible by using the <em>Undo</em> command
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Delete</span>
+                    </span>
+                    <span class="button-descr">
+                        - In the Formula bar, deletes the character to the right of the insertion point from the formula text
+                        <br />
+                        - In cell selection mode, removes the content from selected cells without affecting cell formats
+                        <br />
+                        - In cell editing mode, it deletes the character to the right of the insertion point
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Backspace</span>
+                    </span>
+                    <span class="button-descr">
+                        - In the Formula bar, deletes one character to the left from the formula text
+                        <br />
+                        - In cell selection mode, removes the content of the active cell
+                        <br />
+                        - In cell editing mode, it deletes the character to the left of the insertion point
+                    </span>
+                </li>
+            </ul>
+
+            <h4>Actions applied on element selection</h4>
+            <ul class="keyboard-legend">
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">select a cell</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects an adjacent or non adjacent cell
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">select cells</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects a range of adjacent or nonadjacanet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">A</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects the whole worksheet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">select a row or column</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects an adjacent or nonadjacent row or column
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">select rows or columns</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects a range of adjacent or nonadjacent rows or columns
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Shift</span>
+                        +
+                        <span class="key-button">Arrow Key</span>
+                    </span>
+                    <span class="button-descr">
+                        Selects a range of adjacent cells, rows or columns by extending the selection by one cell, row or column
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Shift</span>
+                        +
+                        <span class="key-button">Arrow Key</span>
+                    </span>
+                    <span class="button-descr">
+                        Extends the selection of cells to the last cell of the current series of data. If there is another set of data afterwards, the cell selection will be extended to the first cell of the new series of data. Otherwise, the cell selection will be extended to the last cell of the worksheet <br /> in the corresponding direction
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Down / Up Arrow</span>
+                    </span>
+                    <span class="button-descr">
+                        - In a menu or submenu, selects the next or previous command
+                        <br />
+                        - In a dialog box, the arrow keys move between options in an active drop-down list, or between options in a group of options
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Shift</span>
+                        +
+                        <span class="key-button">End</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, extends the selection of cells to the last cell on the worksheet located in bottom-right corner
+                        <br />
+                        - In the formula bar, selects all text in the formula bar from the cursor position to the end
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Shift</span>
+                        +
+                        <span class="key-button">Home</span>
+                    </span>
+                    <span class="button-descr">
+                        Extends the selection of cells to the beginning (the top-left cell) of the worksheet
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <div class="box-col">
+            <h4>Actions Applied for navigation within the Spreadsheet</h4>
+            <ul class="keyboard-legend">
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Arrow Key</span>
+                    </span>
+                    <span class="button-descr">
+                        Navigates to the end of the current series of data. If there is another set of data afterwards, the first cell of the new series will be selected. Otherwise, you will be navigated to the last cell of the worksheet in the corresponding direction. 
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Arrow Keys</span>
+                    </span>
+                    <span class="button-descr">
+                        Move one cell up, down, right of left in the worksheet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Shift</span>
+                        +
+                        <span class="key-button">Tab</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves to the previous cell in a worksheet. If the currently active cell is the first cell (the top-left cell) in the Sheet, pressing Shift + Tab will move the <br /> focus <b>outside</b> of the Sheet to the Named ranges ComboBox on the Spreadsheet Toolbar.
+                        <br />
+                        - In a dialog box, moves to the previous option or option group
+                        <br />
+                        - In range selection of cells, rows or columns, moves to the previous cell within the active range. If the focus is on the first cell (the top-left cell) in the range (the top-left), the focus will return to the last (the bottom-left) cell in the range
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Tab</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves one cell to the right in a worksheet. If the currently active cell is the last cell (the bottom-right cell) in the Sheet, pressing Tab will move the focus <b>outside</b> of the Spreadsheet to the next focusable element on the page.
+                        <br />
+                        - In a dialog box, moves to the next option or option group in a dialog box
+                        <br />
+                        - In range selection of cells, rows or columns, moves to the next cell within the active range. If the focus is on the last cell (the bottom-right cell) in the range, the focus will return to the first cell
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Page Down</span>
+                    </span>
+                    <span class="button-descr">
+                        Moves one screen down in a worksheet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Page Up</span>
+                    </span>
+                    <span class="button-descr">
+                        Moves one screen up in a worksheet
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Home</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves to the beginning of a row in a worksheet
+                        <br />
+                        - In a menu or submenu, selects the first command
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">Home</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves to the first cell (the top-left cell) on a worksheet
+                        <br />
+                        - In the Formula Bar, Ctrl + Home moves the cursor to the beginning of the text
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">End</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves to the far right cell of the active row
+                        <br />
+                        - In a menu or submenu, selects the last command
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">End</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell selection mode, moves to the last cell on a worksheet, in the lowest used row of the used column on the bottom-right
+                        <br />
+                        - In the Formula Bar, Ctrl + End moves the cursor to the end of the text
+                    </span>
+                </li>
+            </ul>
+            <h4>Other actions</h4>
+            <ul class="keyboard-legend">
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Alt</span>
+                        +
+                        <span class="key-button">Spacebar</span>
+                    </span>
+                    <span class="button-descr">
+                        Displays the <b>Control</b> menu for the Spreadsheet window
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Spacebar</span>
+                    </span>
+                    <span class="button-descr">
+                        In a dialog box, performs the action for the selected button, or selects or clears a check box
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Enter</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell editing mode or in the formula bar, completes a cell entry and selects the cell below
+                        <br />
+                        - In a data form, it moves to the first field in the next record
+                        <br />
+                        - In the command toolbar, opens a selected menu or performs the action for a selected command
+                        <br />
+                        - In a dialog box, it performs the action for the default command button in the dialog box
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Esc</span>
+                    </span>
+                    <span class="button-descr">
+                        - In cell editing mode or in the Formula bar, cancels an entry in the cell or Formula Bar
+                        <br />
+                        - Closes an open menu or submenu, dialog box or message window
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">P</span>
+                    </span>
+                    <span class="button-descr">
+                        Displays the Print dialog box
+                    </span>
+                </li>
+                <li>
+                    <span class="button-preview">
+                        <span class="key-button wider leftAlign">Ctrl</span>
+                        +
+                        <span class="key-button">S</span>
+                    </span>
+                    <span class="button-descr">
+                        Saves the active spreadsheet file
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+ </div>
+
+
+    
+</body>
+</html>

@@ -1,0 +1,89 @@
+{% extends 'easyops/base.html' %}
+{% block title %}adminsql{% endblock %}
+{% block body_block %}
+
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label">选择主机：</label>
+        <div class="col-sm-4">
+            <select id="hostlist" class="selectpicker show-tick form-control" multiple="multiple"
+                data-live-search="false">
+                {% for hosts in object_list %}
+                <option value={{ hosts.id }}>{{ hosts.hostname }}<{{ hosts.private_ip }}>
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+
+        <label class="col-sm-3 control-label">选择服务：</label>
+        <div class="col-sm-4">
+            <select id="applist" class="selectpicker show-tick form-control" multiple="multiple"
+                data-live-search="false">
+                <option value=0>jdk</option>
+                <option value=1>nginx</option>
+                <option value=2>zookeeper</option>
+            </select>
+        </div>
+
+
+
+        <div class="col-sm-4 col-sm-offset-4">
+            <button id="button_clean" class="btn btn-white" type="reset">取消</button>
+            <button id="submit_button" class="btn btn-primary">安装</button>
+        </div>
+
+    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+
+
+
+
+<script>
+    
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/easyops/playbookfeedback/'
+
+    );
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        document.querySelector('#chat-log').value += (data.message + '\n');
+    };
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+ 
+    // $("#submit_button").click(function () {
+    //     var hosts = $("#hostlist").val();
+    //     var apps = $("#applist").val();
+    //     //console.log({"host_list": hosts, "app_list": apps});
+
+    //     $.ajax({
+    //         type: "GET",
+    //         url: "/easyops/runplaybook/",
+    //         data: JSON.stringify({ "hosts": hosts, "apps": apps }),
+    //         dataType: "json",
+    //         success: function (data) {
+    //             console.log(data);
+    //         }
+
+    //     })
+       
+    // })
+
+    document.querySelector('#submit_button').onclick = function(e) {
+            const message = 'abc'
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            
+        };
+</script>
+
+{% endblock %}

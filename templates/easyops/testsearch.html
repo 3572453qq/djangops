@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.common.min.css" />
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.default.min.css" />
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.default.mobile.min.css" />
+
+    <script src="/static/kendoandbootstrap/kendouipro/js/jquery.min.js"></script>
+    
+    
+    <script src="/static/kendoandbootstrap/kendouipro/js/kendo.all.min.js"></script>
+    
+    
+
+</head>
+<body>
+    <div id="example">
+    <div id="grid"></div>
+    <script>
+        $(document).ready(function () {
+            $("#grid").kendoGrid({
+                dataSource: {
+                    type: "odata",
+                    transport: {
+                        read: "https://demos.telerik.com/kendo-ui/service/Northwind.svc/Orders"
+                    },
+                    schema: {
+                        model: {
+                            fields: {
+                                OrderID: { type: "number" },
+                                Freight: { type: "number" },
+                                ShipName: { type: "string" },
+                                OrderDate: { type: "date" },
+                                ShipCity: { type: "string" }
+                            }
+                        }
+                    },
+                    pageSize: 20,
+                    serverPaging: true,
+                    serverFiltering: true,
+                    serverSorting: true
+                },
+                height: 550,
+                sortable: {
+                    mode: "mixed",
+                    allowUnsort: true,
+                    showIndexes: true
+                },
+                toolbar: ["search"],
+                search: {
+                    fields: [
+                        { name: "OrderID", operator: "eq" },
+                        { name: "Freight", operator: "gte" },
+                        { name: "ShipName", operator: "contains" },
+                        { name: "ShipCity", operator: "contains" },
+                    ]
+                },
+                columns: [
+                    {
+                        field: "OrderID",
+                        title: "Order ID",
+                    },
+                    "Freight",
+                    {
+                        field: "OrderDate",
+                        title: "Order Date",
+                        format: "{0:MM/dd/yyyy}"
+                    }, {
+                        field: "ShipName",
+                        title: "Ship Name"
+                    }, {
+                        field: "ShipCity",
+                        title: "Ship City"
+                    }
+                ]
+            });
+        });
+    </script>
+</div>
+
+
+    
+
+</body>
+</html>

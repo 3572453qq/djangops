@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+   
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.common.min.css" />
+    <link rel="stylesheet" href="/static/kendoandbootstrap/kendouipro/styles/kendo.default.min.css" />
+    <link rel="stylesheet" href="/styles/kendoandbootstrap/kendouipro/styles/kendo.default.mobile.min.css" />
+    <!-- end: CSS -->
+    <!-- start: js -->
+    <script src="/static/kendoandbootstrap/kendouipro/js/jquery.min.js"></script>
+    <script src="/static/kendoandbootstrap/kendouipro/js/kendo.all.min.js"></script>
+
+
+
+
+    
+    
+
+</head>
+<body>
+    <div id="example">
+    <div id="filemanager"></div>
+
+    <script>
+        filemanager_list = {{ filemanager_list | safe }}
+        $("#filemanager").kendoFileManager({
+            // datasource : filemanager_list,
+            dataSource: {
+                schema: kendo.data.schemas.filemanager,
+                transport: {
+                    read: {
+                        url: "https://testops.genzon.com.cn/easyops/dirlist/1",
+                        // url: "https://demos.telerik.com/kendo-ui/service/FileManager/Read",
+                        method: "POST"
+                    },
+                   
+                }
+            },
+            uploadUrl: "/kendo-ui/service/FileManager/Upload",
+            toolbar: {
+                items: [
+                    { name: "createFolder" },
+                    { name: "upload" },
+                    { name: "sortDirection" },
+                    { name: "sortField" },
+                    { name: "changeView" },
+                    { name: "spacer" },
+                    { name: "details" },
+                    { name: "search" }
+                ]
+            },
+            contextMenu: {
+                items: [
+                    { name: "rename" },
+                    { name: "delete" }
+                ]
+            },
+            draggable: true,
+            resizable: true
+        });
+
+        $(document).ready(function () {
+            var filemanager = $("#filemanager").getKendoFileManager();
+
+            filemanager.executeCommand({ command: "TogglePaneCommand", options: { type: "preview" } });
+            filemanager.toolbar.fileManagerDetailsToggle.switchInstance.toggle();
+        })
+    </script>
+</div>
+
+
+
+</body>
+</html>

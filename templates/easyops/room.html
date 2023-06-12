@@ -1,0 +1,137 @@
+{% extends 'easyops/base.html' %}
+{% block title %}ansibletasks{% endblock %}
+{% block body_block %}
+<form style="height:100%">
+<textarea id="editor"  cols="200" style="width:100%; height:80%; ">
+    hhahahahah
+</textarea>
+<br>
+<!-- </div> -->
+<!-- <input id="chat-message-input" type="text" size="100"><br> -->
+{{app_name}}:{{desc}}</br>
+<input id="chat-message-submit" type="button" value="执行">
+<input id="quit" type="button" value="退出">
+</form>
+{{ room_name|json_script:"room-name" }}
+{{ playbook|json_script:"playbook"}}
+{{ desc|json_script:"desc"}}
+{{ app_name|json_script:"app_name"}}
+<script>
+    // $myDiv.scrollTop($myDiv[0].scrollHeight);
+    ke = $("#editor").kendoEditor({
+        tools: [
+            "viewHtml",
+            "pdf",
+            
+        ],
+    });
+    
+    // $('.k-editor-toolbar').hide();
+    var myDiv = document.getElementsByTagName('iframe')[0].contentWindow;  
+    document.getElementsByTagName('iframe')[0].style='margin-left: 0px; max-lines: 5'
+    document.getElementsByTagName('iframe')[0].contentWindow.document.body.style="margin-left: 0px;overflow: scroll"
+    var editor1 = $("#editor").data("kendoEditor");
+    //设置背景为黑色，字体为白色
+    editor1.body.style.backgroundColor = "#000";
+    editor1.body.style.color = "#fff";
+    // editor1.removeAttr("contenteditable")
+    const playBook = JSON.parse(document.getElementById('playbook').textContent);
+    const desc = JSON.parse(document.getElementById('desc').textContent);
+    const app_name = JSON.parse(document.getElementById('app_name').textContent);
+    editor1.value('<font color="green">您即将执行的操作是:</font>['+app_name+'的'+desc+']');
+    editor1.value(editor1.value() + '</br>您的本次操作将被系统记录，请确保本次操作的动机和底层逻辑符合企业文化和价值观');
+
+    editor1.value(editor1.value() +'</br><font color="green">请点击“执行”按钮开始执行操作</font></br>');
+
+    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+    // alert('ws://'
+    //     // + window.location.host.split(':')[0]
+    //     + window.location.host.split(':')[0]+':8001'
+    //     + '/ws/easyops/'
+    //     + roomName
+    //     + '/')
+    const chatSocket = new WebSocket(
+        'wss://'
+        + window.location.host.split(':')[0]
+        // 'ws://'
+        // + window.location.host.split(':')[0]+':8001'
+        + '/ws/easyops/'
+        + roomName
+        + '/'
+    );
+
+    $("#quit").kendoButton({
+            click: function () {
+                // history.go(-1)
+                window.close();
+            }
+    })
+
+    $("#chat-message-submit").kendoButton({
+        click: function(){
+            chatSocket.send(JSON.stringify({
+            'message': roomName
+        }));
+        this.enable(false)
+        }
+    })
+
+    var submitbutton = $("#chat-message-submit").data("kendoButton");
+
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        
+        //超过50w个字符之后，截掉最前面的1w个字符
+        value_len = editor1.value().length;
+        if(value_len>500000){
+            editor1.value(editor1.value().slice(10000))
+        }
+        editor1.value(editor1.value() + '</br>' + data.message);
+
+        editor1.focus();
+
+        //滚动到最后一行
+        var t= myDiv.document.body.scrollHeight
+        // myDiv.scroll({top:t,left:0,behavior:'smooth' });
+        myDiv.scroll({top:t,left:0});
+        if(data.event=='playbook_on_stats'){
+            // submitbutton.enable(true);
+            editor1.value(editor1.value() + '</br>本次操作已全部完成，如果看不懂屏幕输出，您可能需要联系sa/dba确认最后执行结果。');
+        }
+        chatSocket.send(JSON.stringify({
+            'message': 'ping'
+        }));
+     
+    };
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly:'+e.code+' '+e.reason+' '+e.wasClean);
+    };
+
+    function keepwsalive(){
+        chatSocket.send(JSON.stringify({
+            'message': 'ping'
+        }));
+    }
+    var sh;
+    sh = setInterval(keepwsalive,10000)
+
+    // document.querySelector('#quit').onclick = function (e) {
+    //     // self.location = "/easyops/standardop";
+    //     history.go(-1)
+    // };
+
+    
+    // document.querySelector('#chat-message-submit').onclick = function (e) {
+    //     chatSocket.send(JSON.stringify({
+    //         'message': roomName
+    //     }));
+    //     this.disabled=true;
+    // };
+
+
+
+</script>
+{% endblock %}
