@@ -1,10 +1,13 @@
 from . import views
-from django.urls import include, path
+from django.urls import include, path,re_path
 from django.conf.urls import url
 from easyops import views
 from easyops import kdgriddml
 from easyops import kdredis
 from easyops import getdir
+# from django.contrib.staticfiles.views import serve
+# def return_static(request,path,insecure=True,**kwargs):
+#     return serve(request,path,insecure,**kwargs)
 
 urlpatterns = [
     path('index/', views.index, name='index'),
@@ -47,4 +50,6 @@ urlpatterns = [
     url(r'^pmmonitoring(?P<montoring_id>\d+)$',kdredis.listing,name='redislisting'),
     url(r'^updateprometheus$',kdredis.updateprometheus,name='updateprometheus'),
     url(r'^filetoprometheus(?P<montoring_id>\d+)$',kdredis.filetoprometheus,name='filetoprometheus'),
+    # re_path(r'^static/(?P<path>.*)$',return_static,name='static'),  
 ]
+ 

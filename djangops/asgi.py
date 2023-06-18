@@ -19,11 +19,15 @@ from django.core.asgi import get_asgi_application
 import easyops.consumers
 from django.conf.urls import url
 from channels.routing import ProtocolTypeRouter, URLRouter, ChannelNameRouter
+from whitenoise import WhiteNoise
 # import easyops.routing
 
 # application = get_asgi_application()
 
+# application = WhiteNoise(application, root='/data/django/djangops/static')
+
 application = ProtocolTypeRouter({
+    # "http": application,
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter([

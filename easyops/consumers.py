@@ -91,15 +91,16 @@ def ansi_to_html(text):
 
 
 class runner_feedback:
-    def __init__(self, room_group_name, c_name, job_name, job_lock):
+    def __init__(self, room_group_name, c_name, job_name, job_lock,consumer_instance):
         self.room_group_name = room_group_name
         self.c_name = c_name
         self.job_name = job_name
         self.job_lock = job_lock
+        self.consumer_instance=consumer_instance
 
     def send_feedback(self, event_data):
         print('here is the event', event_data['event'])
-        channel_layer = get_channel_layer()
+        # channel_layer = get_channel_layer()
 
         send_str = event_data['stdout']
         send_str = send_str.replace('\n', '</br>')  # 将unix的换行改成html的换行
@@ -117,21 +118,12 @@ class runner_feedback:
         send_str = send_str.strip()
         # if len(send_str) > 1 and 'included:' not in send_str:
         if len(send_str) > 1 and event_data['event'] != 'playbook_on_include':
-            # if len(send_str) > 1 :
-            async_to_sync(channel_layer.group_send)(
-                self.room_group_name,
-                {
-                    "type": "send.message",
+            self.consumer_instance.send(text_data=json.dumps({
                     'message': ansi_to_html(send_str),
                     'event': event_data['event']
-                }
-            )
+                 }))
 
-            # self.send(text_data=json.dumps({
-            #     # 'message': event_data['stdout']
-            #     'message': ansi_to_html(send_str),
-            #     'event':event_data['event']
-            # }))
+            
 
         if event_data['event'] == 'playbook_on_stats':
             rds = redis.Redis(host='127.0.0.1', port=6379)
@@ -370,9 +362,9 @@ class ChatConsumer(WebsocketConsumer):
         playbook_id = int(message)
         atask = list(ansibletasks.objects.filter(id=playbook_id).values())[0]
         all_perm = self.scope["user"].get_all_permissions()
-        print('this is all perm', all_perm)
+        # print('this is all perm', all_perm)
         perm_needed = atask['ansiblepriv']
-        print('this is playbook',atask['playbook'])
+        # print('this is playbook',atask['playbook'])
         self.send(text_data=json.dumps({
                 'message': 'plabook:'+atask['playbook']
             }))
@@ -396,17 +388,9 @@ class ChatConsumer(WebsocketConsumer):
             }))
             return False
 
-        async_to_sync(self.channel_layer.send)(
-            self.c_name,
-            {
-                'type': 'chat.message',
-                'message': message,
-                'room_group_name': self.room_group_name,
-                "c_name": self.c_name,
-                "job_name": self.job_name,
-                "job_lock": self.job_lock
-            }
-        )
+        
+        self.run_ansible_task(message,self.room_group_name,
+                              self.c_name,self.job_name,self.job_lock)
 
         log_addition(self.scope["user"], pagepermission,
                      'submit ansible:'+aplaybook+' on app:['+appname+']')
@@ -418,32 +402,42 @@ class ChatConsumer(WebsocketConsumer):
             'event': event['event']
         }))
 
-    def chat_message(self, event):
+    
+
+    def run_ansible_task(self, p_message,p_room_group_name,p_c_name,p_job_name,p_job_lock):
         print('channel_name in chat message', self.channel_name)
-        message = event['message']
+        message =p_message
         # print(message)
         playbook_id = int(message)
         atask = list(ansibletasks.objects.filter(id=playbook_id).values())[0]
         # print("haha atask is: ",atask)
-        channel_layer = get_channel_layer()
 
-        async_to_sync(channel_layer.group_send)(
-            event['room_group_name'],
-            {
-                "type": "send.message",
-                'message': message,
-                'event': 'common'
-            }
-        )
 
-        async_to_sync(channel_layer.group_send)(
-            event['room_group_name'],
-            {
-                "type": "send.message",
-                'message': atask['playbook'],
+        self.send(text_data=json.dumps({
+                 'message': message,
                 'event': 'common'
-            }
-        )
+            }))
+        # async_to_sync(channel_layer.group_send)(
+        #     event['room_group_name'],
+        #     {
+        #         "type": "send.message",
+        #         'message': message,
+        #         'event': 'common'
+        #     }
+        # )
+        self.send(text_data=json.dumps({
+                 'message': atask['playbook'],
+                'event': 'common'
+            }))
+
+        # async_to_sync(channel_layer.group_send)(
+        #     event['room_group_name'],
+        #     {
+        #         "type": "send.message",
+        #         'message': atask['playbook'],
+        #         'event': 'common'
+        #     }
+        # )
 
         mode = atask['mode']
         aplaybook = atask['playbook']
@@ -451,13 +445,13 @@ class ChatConsumer(WebsocketConsumer):
         module = atask['module']
         extravars = atask['extravars']
         rf1 = runner_feedback(
-            event['room_group_name'], event['c_name'], event['job_name'], event['job_lock'])
+            p_room_group_name, p_c_name, p_job_name,p_job_lock,self)
 
         if mode == 'playbook':
             if extravars is None or len(extravars) < 3:  # 没有参数
                 r = ansible_runner.run_async(
                     private_data_dir='/etc/ansible', playbook=aplaybook+'.yml', event_handler=rf1.send_feedback)
-                # r = ansible_runner.run(private_data_dir='/etc/ansible', playbook=aplaybook+'.yml',event_handler=rf1.send_feedback)
+                
             else:  # 有参数
                 extravars = json.loads(extravars)
                 print(extravars)
@@ -466,23 +460,17 @@ class ChatConsumer(WebsocketConsumer):
         elif mode == 'adhoc':
             r = ansible_runner.run(private_data_dir='/etc/ansible', host_pattern=host_pattern,
                                    module=module, module_args=extravars, event_handler=rf1.send_feedback)
-            async_to_sync(channel_layer.group_send)(
-                event['room_group_name'],
-                {
-                    "type": "send.message",
-                    'message': 'adhoc命令执行完成，如果看不懂屏幕输出，您可能需要联系sa/dba确认最后执行结果。',
-                    'event': 'common'
-                }
-            )
+            
+            self.send(text_data=json.dumps({
+                 'message': 'adhoc命令执行完成，如果看不懂屏幕输出，您可能需要联系sa/dba确认最后执行结果。',
+                'event': 'common'
+            }))
         else:
-            async_to_sync(channel_layer.group_send)(
-                event['room_group_name'],
-                {
-                    "type": "send.message",
-                    'message': 'mode must be playbook or adhoc',
-                    'event': 'common'
-                }
-            )
+            self.send(text_data=json.dumps({
+                 'message': 'mode must be playbook or adhoc',
+                'event': 'common'
+            }))
+            
 
  
 class AcConsumer(WebsocketConsumer):
@@ -650,8 +638,6 @@ class AcConsumer(WebsocketConsumer):
         actype = atask['actype']
         acname = atask['acname']
 
-        # rf1 = runner_feedback(
-        #     event['room_group_name'], event['c_name'], event['job_name'], event['job_lock'])
         async_to_sync(channel_layer.group_send)(
             event['room_group_name'],
             {
@@ -682,5 +668,4 @@ class AcConsumer(WebsocketConsumer):
         rds = redis.Redis(host='127.0.0.1', port=6379)
         rds.set(event['c_name'], 0)
 
-        # check_summary = [{'check_name':ls_acname,'check_result':check_result}]
-        # r = ansible_runner.run(private_data_dir='/etc/ansible', playbook=aplaybook+'.yml',event_handler=rf1.send_feedback)
+        

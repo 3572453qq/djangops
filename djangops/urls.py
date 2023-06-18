@@ -15,12 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf.urls import url
-from django.urls import include,path
+from django.urls import include,path,re_path
 import easyops 
+from django.contrib.staticfiles.views import serve
+def return_static(request,path,insecure=True,**kwargs):
+    return serve(request,path,insecure,**kwargs)
+
 
 urlpatterns = [
     path('easyops/', include('easyops.urls')),
     path('admin/', admin.site.urls),
     url(r'^accounts/',include('registration.backends.simple.urls')),
-    path('', easyops.views.index, name='root'),   
+    path('', easyops.views.index, name='root'),
+    re_path(r'^static/(?P<path>.*)$',return_static,name='static'),
 ]

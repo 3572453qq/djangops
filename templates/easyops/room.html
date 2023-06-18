@@ -52,14 +52,16 @@
     //     + roomName
     //     + '/')
     const chatSocket = new WebSocket(
-        'wss://'
-        + window.location.host.split(':')[0]
-        // 'ws://'
-        // + window.location.host.split(':')[0]+':8001'
+        // 'wss://' + window.location.host.split(':')[0]
+        'ws://' + window.location.host.split(':')[0]+':8001'
         + '/ws/easyops/'
         + roomName
         + '/'
     );
+    alert('ws://' + window.location.host.split(':')[0]+':8001'
+        + '/ws/easyops/'
+        + roomName
+        + '/')
 
     $("#quit").kendoButton({
             click: function () {
