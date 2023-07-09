@@ -140,7 +140,7 @@ class runner_feedback:
 # 数据库连接性检查
 
 # 可用性检查入口
-def ac_check(ac_id, room_group_name):
+def ac_check(ac_id, room_group_name,ac_instance):
     record = list(availabilitycheck.objects.filter(
         id=ac_id).values())
     
@@ -164,44 +164,33 @@ def ac_check(ac_id, room_group_name):
             as_actype = acheck_record[0]['actype']
             as_desc = acheck_record[0]['desc']
             as_vars = acheck_record[0]['vars']
-            check_summary+=ac_check(as_id, room_group_name)
+            check_summary+=ac_check(as_id, room_group_name,ac_instance)
     elif ls_actype=='socket':
         ip_port_list=ls_vars.split(',')
-        async_to_sync(channel_layer.group_send)(
-                room_group_name,
-                {
-                    "type": "send.message",
-                    "event": "check_single",
-                    'message':ls_desc,
-                }
-            )
+        ac_instance.send(text_data=json.dumps({
+                    'message': ls_desc,
+                    'event': 'check_single'
+                 }))
+
         check_result=port_check(ip_port_list)
         check_summary = [{'check_name':ls_acname,'check_result':check_result}]
         print(check_result['detail'])
-        async_to_sync(channel_layer.group_send)(
-                room_group_name,
-                {
-                    "type": "send.message",
+        ac_instance.send(text_data=json.dumps({
                     "event": "check_socket",
                     'check_detail': check_result['detail'],
                     'check_result': check_result['summary'],
-                    'imagefilename': check_result['imagefilename'],
                     'check_name': ls_acname,
                     "desc": ls_desc,
                     "message": 'check_socket message',
-                }
-            )
+                 }))
+
     elif ls_actype == 'web':
         dic_vars = eval(ls_vars)
         print(dic_vars)
-        async_to_sync(channel_layer.group_send)(
-                room_group_name,
-                {
-                    "type": "send.message",
-                    "event": "check_single",
-                    'message':ls_desc,
-                }
-            )
+        ac_instance.send(text_data=json.dumps({
+                    'message': ls_desc,
+                    'event': 'check_single'
+                 }))
 
         checkjob = webcheck(url=dic_vars['url'],flagword=dic_vars['flagword'],interval=dic_vars['interval'],
                         browerser_type=dic_vars['browerser_type'],islogin=dic_vars['islogin'],
@@ -217,10 +206,9 @@ def ac_check(ac_id, room_group_name):
             check_result['detail']=['not able to open the website:'+dic_vars['url']]
             check_result['imagefilename']='nofile'
         print(check_result['detail'])
-        async_to_sync(channel_layer.group_send)(
-                room_group_name,
-                {
-                    "type": "send.message",
+        if 'imagefilename' not in check_result.keys():
+            check_result['imagefilename']='nofile'
+        ac_instance.send(text_data=json.dumps({
                     "event": "check_url",
                     'check_detail': check_result['detail'],
                     'check_result': check_result['summary'],
@@ -228,30 +216,17 @@ def ac_check(ac_id, room_group_name):
                     'check_name': ls_acname,
                     "desc": ls_desc,
                     "message": 'check_url message',
-                }
-
-            )
+                 }))
+       
         check_summary = [{'check_name':ls_acname,'check_result':check_result}]
     else:
         pass
-    # async_to_sync(channel_layer.group_send)(
-    #             room_group_name,
-    #             {
-    #                 "type": "send.message",
-    #                 "event": "check_end",
-    #                 'message':'checkresult:'+str(check_result)
-    #             }
-    #         )
-    
-    async_to_sync(channel_layer.group_send)(
-                room_group_name,
-                {
-                    "type": "send.message",
+   
+    ac_instance.send(text_data=json.dumps({
                     "event": "check_end",
                     'message':'check detail:'+check_summary[0]['check_name']
-                }
-            )
-    # print()
+                 }))
+    
     return check_summary
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -417,27 +392,11 @@ class ChatConsumer(WebsocketConsumer):
                  'message': message,
                 'event': 'common'
             }))
-        # async_to_sync(channel_layer.group_send)(
-        #     event['room_group_name'],
-        #     {
-        #         "type": "send.message",
-        #         'message': message,
-        #         'event': 'common'
-        #     }
-        # )
+
         self.send(text_data=json.dumps({
                  'message': atask['playbook'],
                 'event': 'common'
             }))
-
-        # async_to_sync(channel_layer.group_send)(
-        #     event['room_group_name'],
-        #     {
-        #         "type": "send.message",
-        #         'message': atask['playbook'],
-        #         'event': 'common'
-        #     }
-        # )
 
         mode = atask['mode']
         aplaybook = atask['playbook']
@@ -575,17 +534,9 @@ class AcConsumer(WebsocketConsumer):
             }))
             return False
 
-        async_to_sync(self.channel_layer.send)(
-            self.c_name,
-            {
-                'type': 'ac.message',
-                'message': message,
-                'room_group_name': self.room_group_name,
-                "c_name": self.c_name,
-                "job_name": self.job_name,
-                "job_lock": self.job_lock
-            }
-        )
+
+        # using doaccheck instead of async_to_sync
+        self.doaccheck()
 
         log_addition(self.scope["user"], pagepermission,
                      'submit check:'+self.job_name+' on app:['+appname+']')
@@ -608,64 +559,24 @@ class AcConsumer(WebsocketConsumer):
                 'event': event['event']
             }))
 
-    def ac_message(self, event):
-        print('channel_name in ac message', self.channel_name)
-        message = event['message']
-        # print(message)
-        ac_id = int(message)
-        atask = list(availabilitycheck.objects.filter(id=ac_id).values())[0]
-        # print("haha atask is: ",atask)
-        channel_layer = get_channel_layer()
-
-        async_to_sync(channel_layer.group_send)(
-            event['room_group_name'],
-            {
-                "type": "send.message",
-                'message': message,
-                'event': 'common'
-            }
-        )
-
-        async_to_sync(channel_layer.group_send)(
-            event['room_group_name'],
-            {
-                "type": "send.message",
-                'message': atask['acname'],
-                'event': 'common'
-            }
-        )
-
-        actype = atask['actype']
-        acname = atask['acname']
-
-        async_to_sync(channel_layer.group_send)(
-            event['room_group_name'],
-            {
-                "type": "send.message",
-                'message': 'checking..., pls wait',
-                'event': 'common'
-            }
-        )
-        r = ac_check(ac_id,event['room_group_name'])
+    def doaccheck(self):
+        print('in do accheck')
+        r = ac_check(self.ac_id,'nothing but fake',self)
         for result in r:
             print(result)
-            async_to_sync(channel_layer.group_send)(
-                event['room_group_name'],
-                {
-                    "type": "send.message",
-                    'message': result['check_name']+' returns: '+str(result['check_result']),
-                    'event': 'check end'
-                }
-            )
-        async_to_sync(channel_layer.group_send)(
-                event['room_group_name'],
-                {
-                    "type": "send.message",
-                    'message': 'check complete',
-                    'event': 'check complete'
-                }
-            )
+            self.send(text_data=json.dumps({
+                'message': result['check_name']+' returns: '+str(result['check_result']),
+                'event': 'check end'
+            }))
+        
+        self.send(text_data=json.dumps({
+            'message': 'check complete',
+            'event': 'check complete',
+        }))
+
         rds = redis.Redis(host='127.0.0.1', port=6379)
-        rds.set(event['c_name'], 0)
+        rds.set(self.c_name, 0)
+
+    
 
         

@@ -130,14 +130,7 @@ def index(request):
     # apptree=json.dumps(apptree)
     # print('apptreeafter json:',apptree)
     context_dict['apptree'] = apptree
-    # context_dict['apptree']=[{ 'id': 1, 'parent': 0, 'text': "Item 1" },
-    #         { 'id': 2, 'parent': 0, 'text': "Item 2" },
-    #         { 'id': 3, 'parent': 0, 'text': "Item 3" },
-    #         { 'id': 4, 'parent': 0, 'text': "Item 4" },
-    #         { 'id': 6, 'parent': 5, 'text': "Item 6" },
-    #         { 'id': 5, 'parent': 1, 'text': "Item 5" },
-    #         { 'id': 7, 'parent': 8, 'text': "Item 7" },
-    #         { 'id': 8, 'parent': 5, 'text': "Item 8" },]
+    
 
     # 获取该用户有权限的playbook
     allplaybooks = list(ansibletasks.objects.filter(
@@ -235,10 +228,6 @@ def index(request):
         allacappids.append(result['app_id'])
     context_dict['allchecks'] = newchecks
     context_dict['allacappids'] = allacappids
-
-    # print(context_dict)
-    # print('this is all checks:',context_dict['allchecks'])
-    # print('this is allacappids:',context_dict['allacappids'])
   
 
      # 获取该用户有权限的logfile
