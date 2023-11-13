@@ -124,13 +124,11 @@ class runner_feedback:
                  }))
 
             
-
         if event_data['event'] == 'playbook_on_stats':
             rds = redis.Redis(host='127.0.0.1', port=6379)
             rds.set(self.c_name, 0)
             # rds.set(self.job_name,0)
             release_lock(rds, self.job_name, self.job_lock)
-
         return True
         
 
